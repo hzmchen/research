@@ -52,15 +52,28 @@ research task, independent of subject.
 
 ### Scope
 
+A "research topic" here is open-ended — it may be a survey of data sources, but
+equally a comparison of tools or methods, a literature/landscape review, an
+evaluation of options against a decision, a feasibility study, a how-things-work
+explainer, or anything else worth investigating. The approach below is shape- and
+subject-independent.
+
 - **One topic = one subdirectory** (kebab-case name describing the topic).
-- Be **comprehensive within the topic**: cover the full breadth (all relevant
-  categories/dimensions/sources), and cover the full **provenance spectrum** —
-  official, public/open, unofficial/community, and private/commercial.
-- For each source, assess practical **access options** and rate it on
-  consistent axes — **Access, Quality, Coverage, Usability** — using a small
-  fixed scale (e.g. ★/★★/★★★) defined once in the topic's index.
-- Be **targeted, not padded**: comprehensive detail where it matters, with key
-  insights surfaced — don't bury conclusions in prose.
+- **Frame the question first.** State what the topic is trying to answer and the
+  boundaries of the investigation, so breadth and depth can be judged against it.
+- Be **comprehensive within those boundaries**: identify the relevant dimensions
+  (categories, options, perspectives, time periods, stakeholders, …) and cover
+  each. Where a spectrum exists, span its full range rather than the obvious end
+  — and note what was deliberately left out of scope.
+- **Compare on consistent criteria.** When weighing multiple items (sources,
+  tools, approaches, options…), pick a small fixed set of evaluation axes
+  appropriate to the topic, define them once in the topic's index, and apply them
+  uniformly — ideally with a simple rating scale (e.g. ★/★★/★★★) so items are
+  directly comparable.
+- **Ground claims in evidence** and distinguish fact from inference. Note
+  confidence and flag what should be independently verified.
+- Be **targeted, not padded**: comprehensive where it matters, with key insights
+  surfaced — don't bury conclusions in prose.
 
 ### Structure & writing
 
@@ -84,10 +97,13 @@ research task, independent of subject.
 - Make **atomic commits** (one logical unit each, e.g. one section) and
   **push to `dev` as you go**, so progress is visible and recoverable.
 - When the task is done, **open a merge request / pull request** targeting
-  `main` summarizing the topic and what was produced. Example:
+  `main` summarizing the topic and what was produced. The `gh` CLI is **not**
+  available here — create the PR via the REST API with the token:
 
   ```bash
-  gh pr create --base main --head dev \
-    --title "research: <topic>" \
-    --body "<summary of scope, sources, and key findings>"
+  curl -s -X POST \
+    -H "Authorization: token ${GH_HZM_TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    https://api.github.com/repos/hzmchen/research/pulls \
+    -d '{"title":"research: <topic>","head":"dev","base":"main","body":"<summary of scope, method, and key findings>"}'
   ```
