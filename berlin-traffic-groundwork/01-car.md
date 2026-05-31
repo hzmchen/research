@@ -19,9 +19,14 @@ congestion, accidents, parking, and the environmental/regulatory layer.
 - **Accidents:** the **Unfallatlas** (Destatis, since 2016) gives geocoded
   injury-accident data including cars — CSV + shapefile, open. Berlin also
   publishes yearly accident CSVs on `daten.berlin.de`.
-- **Congestion/floating-car** is mostly **commercial** (TomTom, INRIX, HERE) —
-  see [`07-commercial.md`](07-commercial.md). The city's own real-time "level of
-  service" comes from the detector network.
+- **Congestion/floating-car:** the city *does* publish its own citywide
+  **level-of-service (LOS)** layer — VMZ's `vmzlos` network with per-link
+  `los`/`speedavg`/`freeflowspeed`/`traveltime`, openly served as **WMS** (the
+  red/yellow/green Verkehrslage map; readable via `GetFeatureInfo`). See the deep
+  dive [`teu-detectors-viz-api/verkehrslage-los-map.md`](teu-detectors-viz-api/verkehrslage-los-map.md).
+  It is a *rendered* layer (no documented bulk/historical download, no timestamp),
+  so for **bulk or historical** floating-car data you still go **commercial**
+  (TomTom, INRIX, HERE — [`07-commercial.md`](07-commercial.md)).
 - **Parking** data is **fragmented by district** (some GeoJSON/CSV per Bezirk),
   no unified citywide open inventory.
 
@@ -74,16 +79,20 @@ congestion, accidents, parking, and the environmental/regulatory layer.
 | Real-time volume/speed at a point | TEU detectors (VIZ) | JSON/CSV | ✅ |
 | Network-wide volume per street | Verkehrsmengenkarte DTVw | WMS/WFS | ❌ (periodic) |
 | Where crashes happen | Unfallatlas | CSV/SHP | ❌ (yearly) |
-| Congestion / travel-time index | TomTom/INRIX/HERE (commercial) | API | ✅ |
+| Current congestion / LOS / link speed (open) | VMZ `vmzlos` Verkehrslage | WMS/WMTS (+GetFeatureInfo) | ✅ (rendered; no history) |
+| Bulk/historical floating-car & travel-time | TomTom/INRIX/HERE (commercial) | API | ✅ |
 | Parking inventory | District GeoJSON/CSV | varies | ❌ |
 
 ## Key insight
 
 Berlin gives you **authoritative live point data** (detectors) and
-**authoritative periodic network data** (DTV map) for free — but **no open,
-citywide, real-time floating-car / travel-time layer**. That gap is exactly what
-commercial providers sell, and it's the single most likely reason a project would
-need a paid source.
+**authoritative periodic network data** (DTV map) for free — and, via VMZ's
+**`vmzlos` Verkehrslage WMS**, a citywide **current LOS / travel-time** layer too
+(correcting an earlier draft that said no such open layer exists). What's still
+*not* openly available is **bulk, historical, machine-friendly floating-car data**:
+the LOS layer is a rendered WMS with no documented bulk export, no history, and no
+exposed timestamp. That remaining gap — raw historical/real-time FCD — is what
+commercial providers sell and the most likely reason to pay.
 
 ## Sources
 
