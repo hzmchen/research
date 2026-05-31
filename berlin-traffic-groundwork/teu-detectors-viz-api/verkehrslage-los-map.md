@@ -21,9 +21,8 @@
   `unique_id`), `strkat_1/2` (road category) and `closed`.
 - It is therefore a **travel-time / floating-car-style** product covering a far
   denser network than the 276 TEU detector sites — a *different* data product from
-  the (frozen) detector archive. ⚠️ Freshness could not be dated (no `TIME`
-  dimension / no published "Stand" timestamp), but the layer returns **populated
-  current `los`/`speedavg` values**, i.e. it is not empty/decommissioned.
+  the (frozen) detector archive. **It is genuinely live** (~5-minute cadence) even
+  though the TEU detector feed is frozen — see [Liveness](#liveness-how-fresh-and-how-the-map-updates).
 
 ## The layers (from `services-internet.json`)
 
@@ -82,6 +81,51 @@ travel-time** product, with the **TEU/thermal detectors** as one input and
 interface) overlaid. This page does not expose the raw FCD; it publishes the
 finished LOS network.
 
+## Liveness — how fresh, and how the map updates
+
+**Verdict: it's a near-real-time layer on a ~5-minute cycle, and it is actually
+updating (2026), unlike the frozen TEU detector feed.** Evidence from four angles:
+
+**1. How the Masterportal drives it (client side).** In the portal config
+(`berlin/config.json`) all three Verkehrslage layers carry
+**`"autoRefresh": "300000"`** — the map **re-requests the layer every 300000 ms =
+5 minutes**. The layers are also flagged `cache: true`.
+
+**2. Server caching (platform side).** The WMS `GetMap` responses come back with a
+**`Date`-only** header (no `Last-Modified`/`Expires`) → rendered **dynamically per
+request**. The WMTS/GeoWebCache tiles return **`Cache-Control: max-age=30`** — a
+deliberately tiny 30-second cache, the signature of a feed expected to change
+constantly. Neither behaves like a static dataset.
+
+**3. The values actually change (empirical).** Querying one fixed segment
+(`gid 10435`, Koppenstraße area) across the research session:
+
+| When | los | speedavg | traveltime |
+| ---- | --- | -------- | ---------- |
+| earlier query | 1 | 14.7 | 31.5 |
+| later query | 2 | 15.7 | 29.49 |
+
+It moved between LOS classes and speeds. Within a **69 s** re-poll the values were
+*stable* — exactly what you'd expect from a **5-minute** recompute (sub-cycle =
+no change; cross-cycle = change). So the map is live, not a frozen snapshot.
+
+**4. How VMZ produces it (upstream).** VMZ Berlin states it **fuses detector data
+with floating-car data (FCD) from multiple providers** to "fill gaps in the
+detected road network" and compute the **current traffic situation and travel
+times**. That is why the LOS network is far denser than the ~276 detector
+cross-sections and why it **survives the TEU outage**: FCD, not the frozen
+infrared detectors, is doing most of the work. (The road geometry/IDs in related
+VIZ layers use the **INRIX "XD"** network — see [`masterportal-addons.md`](masterportal-addons.md) —
+consistent with a commercial FCD provider in the mix.)
+
+**Caveats (confidence).** The *client* refresh (5 min), the *cache* behaviour
+(30 s), and the *observed value changes* are verified. The exact **upstream
+recompute interval** is not formally published — 5 min is the documented client
+cadence and a typical FCD interval, but the server could update more/less often.
+There is **no per-feature timestamp / `TIME` dimension and no "Stand" field**, so
+you cannot read the age of an individual value from the API; trust it as
+"current within minutes" rather than reading an explicit observation time.
+
 ## Relation to the rest of this deep dive
 
 - **Different product from the detector archive.** The frozen TEU feed and the
@@ -101,4 +145,6 @@ finished LOS network.
 - Page: [viz.berlin.de – Verkehrslage](https://viz.berlin.de/verkehr-in-berlin/verkehrslage/)
 - WMS: [`api.viz.berlin.de/geoserver/mdh/wms` GetCapabilities](https://api.viz.berlin.de/geoserver/mdh/wms?service=WMS&version=1.1.1&request=GetCapabilities)
 - Layer config: [`masterportal-dps-config` services-internet.json](https://github.com/digitale-plattform-stadtverkehr-berlin/masterportal-dps-config/blob/master/resources/services-internet.json)
-- [OGC WMS GetFeatureInfo](https://www.ogc.org/standard/wms/) · [VMZ Berlin](https://www.vmzberlin.com/)
+- Liveness: [`berlin/config.json`](https://github.com/digitale-plattform-stadtverkehr-berlin/masterportal-dps-config/blob/master/berlin/config.json) (`autoRefresh: 300000`); WMTS GWC tiles `Cache-Control: max-age=30`
+- FCD fusion / methodology: [VMZ Berlin – Kompetenzbereiche](https://www.vmzberlin.com/kompetenzbereiche/) · [VIZ Berlin – Verkehrsinformation (SenUVK)](https://www.berlin.de/sen/uvk/mobilitaet-und-verkehr/verkehrsmanagement/verkehrsinformation/)
+- [Masterportal `autoRefresh` layer config](https://www.masterportal.org/) · [OGC WMS](https://www.ogc.org/standard/wms/) · [VMZ Berlin](https://www.vmzberlin.com/)
