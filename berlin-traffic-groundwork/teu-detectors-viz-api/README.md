@@ -21,6 +21,7 @@ Parent context: [`../01-car.md`](../01-car.md) and [`../00-platforms.md`](../00-
 | [`tools-and-projects.md`](tools-and-projects.md) | Official DPS code + the (thin) third-party ecosystem |
 | [`torstrasse-live-query.md`](torstrasse-live-query.md) | Reproducible `curl`-only query of a Torstraße detector, with real extracted data |
 | [`verkehrslage-los-map.md`](verkehrslage-los-map.md) | Where the red/yellow/green **Verkehrslage** map gets its data (the `vmzlos` LOS WMS) — and why it's not a Masterportal addon |
+| [`masterportal-addons.md`](masterportal-addons.md) | The **Masterportal addon widgets** (`sensorChart`, `commuterFlows`, `economicTransports`, `airpollution`, …) and the data each draws — incl. modelled commuter/freight OD flows |
 
 ## Executive summary
 
