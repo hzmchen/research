@@ -22,7 +22,12 @@ Notes for AI agents working in this repository.
   the **Administration: Read & write** permission on the personal account.
 - **Can** operate on repositories in the `hzmchen` org (e.g. `POST
   /orgs/hzmchen/repos` is accepted; creating `research` only failed because the
-  name already existed).
+  name already existed). Pushing commits and **creating branches/refs**
+  (`Contents: write`) works.
+- **Cannot create pull requests** (`POST /repos/.../pulls` → `Resource not
+  accessible by personal access token`). The token lacks **Pull requests: Read &
+  write** (PR *reads* return 200, but creates are blocked). Until that permission
+  is granted, open PRs via the **web UI** (see Workflow below).
 
 ### Cloning / pushing with the token
 
@@ -97,8 +102,18 @@ subject-independent.
 - Make **atomic commits** (one logical unit each, e.g. one section) and
   **push to `dev` as you go**, so progress is visible and recoverable.
 - When the task is done, **open a merge request / pull request** targeting
-  `main` summarizing the topic and what was produced. The `gh` CLI is **not**
-  available here — create the PR via the REST API with the token:
+  `main` summarizing the topic and what was produced.
+- ⚠️ Neither the `gh` CLI **nor** the REST API works for this with the current
+  token (it lacks `Pull requests: write` — see the token section above). **Open
+  the PR through the web UI** using a compare link, then add assignees/reviewers
+  in the sidebar:
+
+  ```
+  https://github.com/hzmchen/research/compare/main...dev?expand=1
+  ```
+
+  If the token is later granted `Pull requests: Read & write`, a PR can be created
+  programmatically instead:
 
   ```bash
   curl -s -X POST \
@@ -106,4 +121,5 @@ subject-independent.
     -H "Accept: application/vnd.github+json" \
     https://api.github.com/repos/hzmchen/research/pulls \
     -d '{"title":"research: <topic>","head":"dev","base":"main","body":"<summary of scope, method, and key findings>"}'
+  # then assign: POST /repos/hzmchen/research/issues/<pr_number>/assignees {"assignees":["nielsaka"]}
   ```
