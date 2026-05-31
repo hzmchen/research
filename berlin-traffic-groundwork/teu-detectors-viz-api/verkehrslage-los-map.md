@@ -48,10 +48,23 @@ features. Example responses (queried 2026-05-31, central Berlin):
 {"gid":10437,"...":"...","los":2,"speedavg":23.34,"freeflowspeed":39.67,"traveltime":16.44}
 ```
 
-So the colour = **`los`**, derived per link from **`speedavg` vs `freeflowspeed`**
-(here a link at 14.7 km/h vs 30 free-flow → `los 1`, the most-congested band).
-`traveltime` is the modelled current segment travel time. There is **no per-feature
-timestamp**.
+So the colour = **`los`**, a class derived per link from speed vs free-flow speed.
+**Ground truth from the layer's SLD** (`GetStyles`), which maps `los` → colour the
+same way for every road category (`strkat_1` ∈ I, II, III, IV, 0):
+
+| `los` | colour (hex) | meaning |
+| ----- | ------------ | ------- |
+| `0` | red `#FF0000` | jam / heavily congested |
+| `1` | orange `#FFC000` | disrupted |
+| `2` | green `#00AA00` | flowing |
+| `3` | bright green `#00FF00` | free-flow |
+| `7` | dark grey `#333333` | special (e.g. closed) |
+| *null* | white/grey `#FFFFFF`/`#DDDDDD` | "keine Information" (no data) |
+
+(So the example above — `los:1`, 14.7 km/h vs 30 free-flow — is the **orange
+"disrupted"** band, *not* the worst; `los 0` red is the jam class. An earlier draft
+mislabelled this.) `traveltime` is the modelled current segment travel time. There
+is **no per-feature timestamp**. Full field definitions ↓.
 
 ## Reproduce it with curl
 
@@ -80,6 +93,98 @@ travel-time** product, with the **TEU/thermal detectors** as one input and
 `…/daten/baustellen_sperrungen.json`, fed from the non-public **OCIT-C / Concert**
 interface) overlaid. This page does not expose the raw FCD; it publishes the
 finished LOS network.
+
+## Field definitions (ground truth)
+
+Not inferred — taken from the GeoServer **`DescribeFeatureType`** schema, a real
+**`WFS GetFeature`** row, the **SLD**, and the matching **INRIX** data dictionary.
+
+**Rendered layer `mdh:vmzlos-step`** (`DescribeFeatureType`):
+
+| field | type | definition (ground truth) |
+| ----- | ---- | ------------------------- |
+| `gid` | int | GeoServer feature id |
+| `unique_id` | string | segment id (`fromnode_linkid_fromnode`) |
+| `from_node`/`to_node` | string | network topology node ids |
+| `strkat_1`/`strkat_2` | string | Berlin **Straßenkategorie** (road class I–IV, 0) |
+| `closed` | int | segment-closed flag (0/1) |
+| `los` | int | level-of-service class — see SLD table above (0=jam … 3=free, 7=special, null=no info) |
+| `speedavg` | double | segment average speed [km/h] |
+| `freeflowspeed` | double | **free-flow / reference speed** [km/h] |
+| `traveltime` | double | current segment travel time |
+| `geom` | curve | the road-segment line |
+
+**The source table `mdh:los-vmz` reveals the provenance — it's INRIX XD.** Its
+schema and a real row (`WFS GetFeature`):
+
+```
+xdsegid:387560184  previousxd:387557165  nextxdsegi:387560263  frc:1
+segmentclosed:0  los:3  speed:66  reference:69  average:68  traveltimeminutes:0.499
+```
+
+`xdsegid / previousxd / nextxdsegi / frc / speed / reference / average /
+traveltimeminutes` are **INRIX XD Traffic / Segment-Speed** field names. INRIX
+documents them (docs.inrix.com): for each XD segment INRIX provides the
+**`speed`** (current measured speed from live probe data), the **`average`**
+(historical typical speed for that day-of-week & hour, 15-min bins), and the
+**`reference`** speed — *"the proxy of the free flow or uncongested speed, defined
+for the entire day."* So the layer's **`freeflowspeed` = INRIX `reference` speed**
+(free-flow proxy); **`frc` = Functional Road Class**; **`traveltimeminutes`** =
+segment travel time. The rendered `vmzlos-step` carries the derived `speedavg` /
+`freeflowspeed` / `los`; the INRIX source `los-vmz` keeps current `speed`,
+historical `average`, and `reference` separately. (A second source table
+`mdh:los-rbb` also exists; its schema was not retrievable at query time.)
+
+→ **`freeflowspeed` is not a VMZ invention or a guess: it is INRIX's documented
+"reference speed" (free-flow proxy).** Authoritative definitions:
+<https://docs.inrix.com/traffic/segmentspeed/> and
+<https://inrix.com/blog/reference-speeds-the-backbone-of-better-traffic-intelligence/>.
+
+## Availability on other data platforms
+
+- **daten.berlin.de (Berlin open-data portal): not listed.** A search for
+  "Verkehrslage" returns only an unrelated BSR street-cleaning dataset — there is
+  **no** Verkehrslage / LOS / FCD dataset on the city portal.
+- **Mobilithek / GovData / mCLOUD: not found.** Berlin publishes **closures
+  (Baustellen/Sperrungen)** to the Mobilithek as DATEX II, but **not** the
+  Verkehrslage/LOS feed. No national-access-point entry surfaced.
+- **It *is* retrievable as data — but only from VIZ's own GeoServer, via WFS** (not
+  just the rendered WMS): the same `mdh` workspace exposes the features over
+  **OGC WFS**, returning full attributes:
+
+  ```bash
+  O="https://api.viz.berlin.de/geoserver/mdh/ows"
+  # rendered LOS network as GeoJSON features:
+  curl -s "$O?service=WFS&version=2.0.0&request=GetFeature&typeNames=mdh:vmzlos-step&count=5&outputFormat=application/json"
+  # the INRIX-schema source table:
+  curl -s "$O?service=WFS&version=2.0.0&request=GetFeature&typeNames=mdh:los-vmz&count=5&outputFormat=application/json"
+  ```
+
+  So "another platform" = **the VIZ GeoServer's WMS (render) + WFS (features)**; it
+  is *not* mirrored to Mobilithek, GovData, or daten.berlin.de.
+
+## Licence
+
+**No open licence is published for the Verkehrslage / LOS layer — treat it as
+restricted, not open data.** Ground truth:
+
+- The GeoServer capabilities advertise `<Fees>none</Fees>` and
+  `<AccessConstraints>none</AccessConstraints>` — but these are **GeoServer's
+  default placeholder values**, not an affirmative licence grant.
+- The layer is **absent from daten.berlin.de**, so it carries **none** of the
+  `dl-de/by-2.0` declaration that the *detector archive* explicitly has. The two
+  must not be conflated: the dl-de/by-2.0 grant covers "Verkehrsdetektion", **not**
+  the Verkehrslage.
+- The underlying data is **INRIX commercial floating-car data**. viz.berlin.de
+  states the FCD is "made available in a data-protection-compliant manner by a
+  company (here **INRIX**)", and the commuter analyses cite **"INRIX Trips"**; the
+  `los-vmz` INRIX-XD schema corroborates. INRIX FCD is contractually licensed and
+  generally **not redistributable as open data**.
+- **Conclusion:** the WMS/WFS is publicly reachable for *viewing* on viz.berlin.de,
+  but there is **no evidence of an open reuse licence**, and the INRIX-sourced
+  inputs are proprietary. Any reuse beyond display should be cleared with **VMZ
+  Berlin / SenMVKU**; do not assume dl-de/by-2.0. *(I found no explicit terms-of-use
+  page for this layer; this is the ground-truth absence, stated as such.)*
 
 ## Liveness — how fresh, and how the map updates
 
@@ -118,10 +223,16 @@ infrared detectors, is doing most of the work. (The road geometry/IDs in related
 VIZ layers use the **INRIX "XD"** network — see [`masterportal-addons.md`](masterportal-addons.md) —
 consistent with a commercial FCD provider in the mix.)
 
+**Upstream cadence (documented).** VMZ/VIZ descriptions state the sensor network
+delivers congestion/speed at ~300 locations **every 5 minutes**, combined with the
+state's measurement data to compute a network-wide traffic picture **every ~15
+minutes**. So: detectors 5 min → **network-wide LOS recomputed ≈ every 15 min**,
+while the Masterportal client re-requests the tiles every 5 min.
+
 **Caveats (confidence).** The *client* refresh (5 min), the *cache* behaviour
-(30 s), and the *observed value changes* are verified. The exact **upstream
-recompute interval** is not formally published — 5 min is the documented client
-cadence and a typical FCD interval, but the server could update more/less often.
+(30 s), and the *observed value changes* are verified by API/headers; the ~15-min
+network-LOS recompute is from VMZ's own description (secondary source, not an API
+field).
 There is **no per-feature timestamp / `TIME` dimension and no "Stand" field**, so
 you cannot read the age of an individual value from the API; trust it as
 "current within minutes" rather than reading an explicit observation time.
@@ -134,11 +245,12 @@ you cannot read the age of an individual value from the API; trust it as
   The Verkehrslage map can stay useful even while the detector archive is stale,
   because it is FCD-driven, not detector-driven.
 - **It partially fills the "no open real-time travel-time layer" gap** noted in
-  [`../01-car.md`](../01-car.md): VMZ *does* publish citywide current
-  `los`/`speedavg`/`traveltime` per link, openly, as WMS — readable point-by-point
-  via `GetFeatureInfo`. Caveats: it's a **rendered WMS** (no documented bulk
-  download, no history, no timestamp), so for **bulk or historical** FCD you would
-  still go commercial ([`../07-commercial.md`](../07-commercial.md)).
+  [`../01-car.md`](../01-car.md): VMZ *does* expose citywide current
+  `los`/`speedavg`/`traveltime` per link, **publicly reachable** as WMS/WFS —
+  readable via `GetFeatureInfo`/`GetFeature`. **But "reachable" ≠ "open"**: the
+  inputs are **INRIX** (proprietary, no open licence — see Licence above), there's
+  no bulk/historical export and no timestamp. So for **licensed, bulk, or
+  historical** FCD you still go commercial ([`../07-commercial.md`](../07-commercial.md)).
 
 ## Salient docs / sources
 

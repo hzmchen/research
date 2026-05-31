@@ -19,14 +19,16 @@ congestion, accidents, parking, and the environmental/regulatory layer.
 - **Accidents:** the **Unfallatlas** (Destatis, since 2016) gives geocoded
   injury-accident data including cars — CSV + shapefile, open. Berlin also
   publishes yearly accident CSVs on `daten.berlin.de`.
-- **Congestion/floating-car:** the city *does* publish its own citywide
+- **Congestion/floating-car:** the city exposes its own citywide
   **level-of-service (LOS)** layer — VMZ's `vmzlos` network with per-link
-  `los`/`speedavg`/`freeflowspeed`/`traveltime`, openly served as **WMS** (the
-  red/yellow/green Verkehrslage map; readable via `GetFeatureInfo`). See the deep
-  dive [`teu-detectors-viz-api/verkehrslage-los-map.md`](teu-detectors-viz-api/verkehrslage-los-map.md).
-  It is a *rendered* layer (no documented bulk/historical download, no timestamp),
-  so for **bulk or historical** floating-car data you still go **commercial**
-  (TomTom, INRIX, HERE — [`07-commercial.md`](07-commercial.md)).
+  `los`/`speedavg`/`freeflowspeed`/`traveltime`, **publicly reachable** as
+  **WMS/WFS** (the red/yellow/green Verkehrslage map; readable via
+  `GetFeatureInfo`/`GetFeature`). ⚠️ But it is **INRIX-sourced floating-car data
+  with no open licence** (≠ the dl-de/by-2.0 detector archive), rendered-only (no
+  bulk/historical export, no timestamp). See the deep dive
+  [`teu-detectors-viz-api/verkehrslage-los-map.md`](teu-detectors-viz-api/verkehrslage-los-map.md).
+  For **licensed, bulk, or historical** floating-car data you still go
+  **commercial** (TomTom, INRIX, HERE — [`07-commercial.md`](07-commercial.md)).
 - **Parking** data is **fragmented by district** (some GeoJSON/CSV per Bezirk),
   no unified citywide open inventory.
 
@@ -79,7 +81,7 @@ congestion, accidents, parking, and the environmental/regulatory layer.
 | Real-time volume/speed at a point | TEU detectors (VIZ) | JSON/CSV | ✅ |
 | Network-wide volume per street | Verkehrsmengenkarte DTVw | WMS/WFS | ❌ (periodic) |
 | Where crashes happen | Unfallatlas | CSV/SHP | ❌ (yearly) |
-| Current congestion / LOS / link speed (open) | VMZ `vmzlos` Verkehrslage | WMS/WMTS (+GetFeatureInfo) | ✅ (rendered; no history) |
+| Current congestion / LOS / link speed (public, but INRIX-sourced, no open licence) | VMZ `vmzlos` Verkehrslage | WMS/WFS (+GetFeatureInfo) | ✅ (rendered; no history) |
 | Bulk/historical floating-car & travel-time | TomTom/INRIX/HERE (commercial) | API | ✅ |
 | Parking inventory | District GeoJSON/CSV | varies | ❌ |
 
@@ -87,12 +89,12 @@ congestion, accidents, parking, and the environmental/regulatory layer.
 
 Berlin gives you **authoritative live point data** (detectors) and
 **authoritative periodic network data** (DTV map) for free — and, via VMZ's
-**`vmzlos` Verkehrslage WMS**, a citywide **current LOS / travel-time** layer too
-(correcting an earlier draft that said no such open layer exists). What's still
-*not* openly available is **bulk, historical, machine-friendly floating-car data**:
-the LOS layer is a rendered WMS with no documented bulk export, no history, and no
-exposed timestamp. That remaining gap — raw historical/real-time FCD — is what
-commercial providers sell and the most likely reason to pay.
+**`vmzlos` Verkehrslage WMS/WFS**, a citywide **current LOS / travel-time** layer is
+**publicly reachable**. But that layer is **INRIX-sourced floating-car data with no
+open licence** (don't conflate it with the dl-de/by-2.0 detector archive), rendered
+only, with no bulk/historical export or timestamp. So what's still *not* openly &
+reusably available is **licensed, bulk, historical floating-car data** — that gap is
+what commercial providers (TomTom, INRIX, HERE) sell and the most likely reason to pay.
 
 ## Sources
 
