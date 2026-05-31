@@ -18,6 +18,6 @@ See each topic's own `README.md` for details.
 
 | Topic | Location | Notes |
 | ----- | -------- | ----- |
-| _(none yet)_ | | |
+| Berlin traffic data — groundwork | [`berlin-traffic-groundwork/`](berlin-traffic-groundwork/) | Survey of Berlin mobility data across all modes & provenance tiers, with access/quality/coverage/usability ratings. |
 
 See [AGENTS.md](AGENTS.md) for agent/automation setup.
