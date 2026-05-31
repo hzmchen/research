@@ -121,33 +121,43 @@ treat individual lane detectors as *frequently gappy*, prefer aggregating to the
 **cross-section (Messquerschnitt)** level and across redundant lanes, and always
 gate on `Datapoints_Rel`/`qualitaet` before trusting an hour.
 
-## Step 7 — the LIVE feed for Torstraße (SensorThings/FROST)
+## Step 7 — is there a LIVE feed for Torstraße? (No — and why)
 
-The archive above ends June 2025; the **live** data comes from the SensorThings
-API. TE410 is `Thing(179)`; its 5-minute KFZ-count datastream is `19225`:
+The 8 Torstraße detectors live on the **legacy** `FROST-Server-TEU` SensorThings
+server. TE410 is `Thing(179)`; its 5-minute KFZ-count datastream is `19225`:
 
 ```bash
 B="https://api.viz.berlin.de/FROST-Server-TEU/v1.1"
 curl -s "$B/Datastreams(19225)/Observations?\$orderby=phenomenonTime desc&\$top=3&\$select=phenomenonTime,result"
 ```
 
-Real response (snapshot): newest = **`2025-07-01T12:30:00Z/…12:35:00Z`, result 110**
-(110 vehicles in that 5-minute window). So the live feed is **fresher than the
-monthly archive** — the archive simply lags by one complete month.
+Real response (queried **2026-05-31**): newest =
+**`2025-07-01T12:30:00Z/…12:35:00Z`, result 110**. That's **~10 months old** — the
+TEU feed is **frozen**, not live.
 
-**Per-sensor recency across the 4 Torstraße cross-sections** (latest live obs):
+**Latest observation per Torstraße cross-section (queried 2026-05-31):**
 
-| Cross-section | Latest live observation | State |
-| ------------- | ----------------------- | ----- |
-| TE181 | **2025-07-02 10:05Z** | ✅ current |
-| TE410 | **2025-07-01 12:35Z** | ✅ current |
-| TE180 | 2025-04-13 09:55Z | ⚠️ stale |
-| TE431 | 2024-04-29 13:25Z | ❌ offline |
+| Cross-section | Latest TEU observation | Age |
+| ------------- | ---------------------- | --- |
+| TE181 | 2025-07-02 10:05Z | ~10 mo |
+| TE410 | 2025-07-01 12:35Z | ~10 mo |
+| TE180 | 2025-04-13 09:55Z | ~13 mo |
+| TE431 | 2024-04-29 13:25Z | ~2 yr |
 
-This mirrors the archive coverage finding exactly: the same detectors (TE180,
-TE431) are the broken ones. **The healthy sensors are live to the minute**;
-"mid-2025" is simply where the upstream clock was when queried (the repo's
-`2026-05-31` banner is the authoring harness's date, not VIZ's).
+**Why no current data:** the legacy infrared TEU network is being decommissioned
+in favour of **thermal cameras** (`FROST-Server-ThermiCam`, live to **2026-05-31**),
+but **ThermiCam covers only 67 sites and none on Torstraße** — confirmed:
+
+```bash
+TC="https://api.viz.berlin.de/FROST-Server-ThermiCam/v1.1"
+curl -s "$TC/Things?\$top=100&\$select=name,description" | grep -i torstr   # → no match
+```
+
+So **Torstraße currently has no live detector at all**; the freshest data is
+**2025-07-02** (frozen TEU SensorThings) or **June 2025** (blob archive). For a
+*currently-live* example you'd query a ThermiCam site instead, e.g. `TC013`
+(Hauptstraße) or `TC009` (Frankfurter Allee), which reported within the hour.
+Full reasoning: [`README.md`](README.md#why-is-the-data-old--the-endpoints-stale).
 
 ## Recap (what the API gave us)
 
@@ -155,10 +165,12 @@ TE431) are the broken ones. **The healthy sensors are live to the minute**;
   QA (`ZScore_*`, `Datapoints_Rel`, `hist_cor`); `NaN` = missing.
 - **Format:** `;`-CSV, one row per (detector, date, hour); new-QA delivered as
   monthly `.tgz` of per-detector CSVs.
-- **Time range:** archive 2015 → 2025-06 (hourly); **live SensorThings feed current
-  to ~2025-07-02 at 5-minute resolution**.
+- **Time range (Torstraße):** archive 2015 → 2025-06 (hourly); legacy TEU
+  SensorThings to ~2025-07-02 then **frozen**; **no thermal-camera (live) coverage
+  on Torstraße yet**. Citywide live vehicle data exists only at the 67 ThermiCam
+  sites (5-min, current to 2026-05-31).
 - **Access:** anonymous — Azure-blob list + GET for history (`curl`+`tar`),
-  SensorThings GET for live (`curl`); no key, no extra packages.
+  SensorThings GET for live/legacy (`curl`); no key, no extra packages.
 
 ## Sources / docs
 
