@@ -13,7 +13,48 @@ unchanged.) Detectors are grouped into **Messquerschnitte** (directional
 measurement cross-sections); a cross-section's value exists only when *all* its
 lane detectors have a valid hour.
 
-## The endpoint is an Azure Blob container (not a REST service)
+## Two interfaces: live (SensorThings) + history (blob)
+
+The VIZ platform exposes the detectors through **two** open, anonymous interfaces:
+
+| | Live / near-real-time | Curated history |
+| --- | --- | --- |
+| Tech | **OGC SensorThings API** (Fraunhofer **FROST** server) | **Azure Blob** container |
+| Base | `https://api.viz.berlin.de/FROST-Server-TEU/v1.1/` | `https://mdhopendata.blob.core.windows.net/verkehrsdetektion/` |
+| Resolution | **5 min** (+ hour/day/week/month/year aggregates) | hourly |
+| Latency | minutes (current to ~2025-07-02 at snapshot) | monthly batch (ends 2025-06) |
+| Use it for | "now", live maps, sub-hourly analysis | clean long time series |
+
+Sibling FROST servers on the same host: **`FROST-Server-EcoCounter2`** (bike
+counters) and **`FROST-Server-ThermiCam`** (the thermal cameras now replacing the
+infrared TEUs). All are wired into the public `viz.berlin.de` Masterportal config.
+
+### Live: OGC SensorThings (FROST) — `FROST-Server-TEU/v1.1`
+
+Standard SensorThings entity model; **anonymous GET**, OData query params, also
+MQTT. Key entities: `Things` (one per cross-section, **276** of them),
+`Datastreams` (per Thing: count/speed × KFZ/PKW/LKW × 5min/Stunde/Tag/Woche/
+Monat/Jahr), `Observations`, `Locations`, `ObservedProperties`.
+
+```bash
+B="https://api.viz.berlin.de/FROST-Server-TEU/v1.1"
+curl -s "$B/"                                            # service doc (entity list)
+curl -s "$B/Things?\$count=true&\$top=1"                 # 276 cross-sections
+curl -s "$B/Things?\$filter=name eq 'TE410'\
+&\$expand=Datastreams(\$select=@iot.id,name)"            # one sensor's datastreams
+# latest 5-min vehicle counts for datastream 19225 (TE410, "Anzahl KFZ 5 Minuten"):
+curl -s "$B/Datastreams(19225)/Observations?\$orderby=phenomenonTime desc&\$top=3&\$select=phenomenonTime,result"
+```
+
+`Observation.phenomenonTime` is an ISO-8601 **interval** (e.g.
+`2025-07-01T12:30:00Z/2025-07-01T12:35:00Z`); `result` is the value (count, or
+km/h for speed datastreams). Sensor health varies — some Things' last observation
+is months old (matching the offline detectors seen in the archive).
+
+> 📄 SensorThings spec: <https://docs.ogc.org/is/18-088/18-088.html> · FROST docs:
+> <https://fraunhoferiosb.github.io/FROST-Server/>
+
+## The history endpoint is an Azure Blob container
 
 `https://api.viz.berlin.de/daten/verkehrsdetektion` is an HTML page whose
 `browser.js` simply lists an Azure blob container:

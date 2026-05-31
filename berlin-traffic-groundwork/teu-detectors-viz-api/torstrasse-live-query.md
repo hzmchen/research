@@ -121,14 +121,44 @@ treat individual lane detectors as *frequently gappy*, prefer aggregating to the
 **cross-section (Messquerschnitt)** level and across redundant lanes, and always
 gate on `Datapoints_Rel`/`qualitaet` before trusting an hour.
 
+## Step 7 — the LIVE feed for Torstraße (SensorThings/FROST)
+
+The archive above ends June 2025; the **live** data comes from the SensorThings
+API. TE410 is `Thing(179)`; its 5-minute KFZ-count datastream is `19225`:
+
+```bash
+B="https://api.viz.berlin.de/FROST-Server-TEU/v1.1"
+curl -s "$B/Datastreams(19225)/Observations?\$orderby=phenomenonTime desc&\$top=3&\$select=phenomenonTime,result"
+```
+
+Real response (snapshot): newest = **`2025-07-01T12:30:00Z/…12:35:00Z`, result 110**
+(110 vehicles in that 5-minute window). So the live feed is **fresher than the
+monthly archive** — the archive simply lags by one complete month.
+
+**Per-sensor recency across the 4 Torstraße cross-sections** (latest live obs):
+
+| Cross-section | Latest live observation | State |
+| ------------- | ----------------------- | ----- |
+| TE181 | **2025-07-02 10:05Z** | ✅ current |
+| TE410 | **2025-07-01 12:35Z** | ✅ current |
+| TE180 | 2025-04-13 09:55Z | ⚠️ stale |
+| TE431 | 2024-04-29 13:25Z | ❌ offline |
+
+This mirrors the archive coverage finding exactly: the same detectors (TE180,
+TE431) are the broken ones. **The healthy sensors are live to the minute**;
+"mid-2025" is simply where the upstream clock was when queried (the repo's
+`2026-05-31` banner is the authoring harness's date, not VIZ's).
+
 ## Recap (what the API gave us)
 
 - **Fields:** date, hour (local), counts `qkfz/qpkw/qlkw`, speeds `vkfz/vpkw/vlkw`,
   QA (`ZScore_*`, `Datapoints_Rel`, `hist_cor`); `NaN` = missing.
 - **Format:** `;`-CSV, one row per (detector, date, hour); new-QA delivered as
   monthly `.tgz` of per-detector CSVs.
-- **Time range:** 2015 → 2025-06 (snapshot), hourly.
-- **Access:** anonymous Azure-blob list + GET; `curl`(+`tar`) is the whole toolkit.
+- **Time range:** archive 2015 → 2025-06 (hourly); **live SensorThings feed current
+  to ~2025-07-02 at 5-minute resolution**.
+- **Access:** anonymous — Azure-blob list + GET for history (`curl`+`tar`),
+  SensorThings GET for live (`curl`); no key, no extra packages.
 
 ## Sources / docs
 

@@ -17,29 +17,36 @@ Parent context: [`../01-car.md`](../01-car.md) and [`../00-platforms.md`](../00-
 
 | File | What |
 | ---- | ---- |
-| [`api-reference.md`](api-reference.md) | What the API is (Azure blob store), its structure, schema, formats, time range, licence |
+| [`api-reference.md`](api-reference.md) | Both interfaces — the live **SensorThings/FROST** API and the **Azure blob** archive — structure, schema, formats, time range, licence |
 | [`tools-and-projects.md`](tools-and-projects.md) | Official DPS code + the (thin) third-party ecosystem |
 | [`torstrasse-live-query.md`](torstrasse-live-query.md) | Reproducible `curl`-only query of a Torstraße detector, with real extracted data |
 
 ## Executive summary
 
-- **The "API" is a public, anonymous Azure Blob container**, not a REST service:
-  `https://mdhopendata.blob.core.windows.net/verkehrsdetektion/`. The page at
-  `https://api.viz.berlin.de/daten/verkehrsdetektion` is just a JS file-browser
-  over it. You list and download with the **Azure Blob list REST API** + `curl`.
-- **What it serves:** an **archive of hourly traffic-detection values** per lane
-  detector and per measurement cross-section (Messquerschnitt): counts and mean
-  speeds split into **all motor vehicles / cars / trucks** (`q*`/`v*`), with
-  quality fields. **Time range: 2015 → 2025-06** (monthly files; the snapshot's
-  latest month was June 2025). A `Stammdaten` spreadsheet maps detectors to
-  streets/coordinates.
-- **Two quality regimes coexist:** *alte Qualitätssicherung* (per-lane + aggregated
-  cross-section CSVs) and *neue Qualitätssicherung* (per-detector CSV inside a
-  monthly `.tgz`, with extra QA metrics; historical data **reworked in 2025**).
-- **"Live" vs "open":** the real-time picture is rendered on the `viz.berlin.de`
-  Masterportal map (client-side); the **openly documented, directly queryable**
-  product is this **archive** (hourly, monthly-batched — *not* a sub-hourly
-  real-time REST feed). Don't expect second-by-second data from the open endpoint.
+- **There are TWO open interfaces, for two jobs:**
+  1. **Live feed — OGC SensorThings API (Fraunhofer FROST), anonymous:**
+     `https://api.viz.berlin.de/FROST-Server-TEU/v1.1/` — **276 cross-sections**,
+     **5-minute** resolution (plus hour/day/week/month/year aggregates), count +
+     speed × KFZ/PKW/LKW. Sibling servers: `FROST-Server-EcoCounter2` (bikes),
+     `FROST-Server-ThermiCam` (the new thermal cameras). This is the real-time
+     surface behind the `viz.berlin.de` map.
+  2. **History — a public Azure Blob container:**
+     `https://mdhopendata.blob.core.windows.net/verkehrsdetektion/` (the page at
+     `api.viz.berlin.de/daten/verkehrsdetektion` is just a JS browser over it).
+     Curated **hourly** values, batched **monthly**; list/download with the Azure
+     Blob list REST API + `curl`.
+- **What the archive serves:** hourly counts and mean speeds per lane detector and
+  per cross-section, split into **all motor vehicles / cars / trucks** (`q*`/`v*`),
+  with quality fields. A `Stammdaten` spreadsheet maps detectors to streets/coords.
+- **Two quality regimes coexist** in the archive: *alte Qualitätssicherung*
+  (per-lane + aggregated cross-section CSVs) and *neue Qualitätssicherung*
+  (per-detector CSV inside a monthly `.tgz`, extra QA metrics; reworked in 2025).
+- **Recency:** the **live SensorThings feed is current to the minute** (healthy
+  sensors observed up to **2025-07-02** at the snapshot); the **archive ends with
+  the last complete month** (`detektor_2025_06.tgz`). So for "now"/sub-hourly use
+  the FROST API; for clean long history use the blob archive. ⚠️ The `2026-05-31`
+  date in this repo's banners is the authoring harness's clock — the upstream VIZ
+  data clock was ~early July 2025 when queried.
 - **Tools ecosystem is thin.** The authoritative code is DPS's own
   (`datenablage`, `eco-counter`, `masterportal-addon-sensor-chart`). Third-party
   repos that target *this* detector feed are scarce/dormant — you'll mostly write
@@ -60,6 +67,7 @@ In our sample, **418 of 715** hours were duplicated like this. **Always dedupe o
 
 ## Salient docs / sources
 
+- **Live API:** [`FROST-Server-TEU/v1.1`](https://api.viz.berlin.de/FROST-Server-TEU/v1.1/) (OGC SensorThings) · [SensorThings spec](https://docs.ogc.org/is/18-088/18-088.html) · [FROST-Server docs](https://fraunhoferiosb.github.io/FROST-Server/)
 - [DPS file browser – Verkehrsdetektion](https://api.viz.berlin.de/daten/verkehrsdetektion) (the `ReadMe.txt` next to the data is the canonical schema doc)
 - [Berlin Open Data – Verkehrsdetektion Berlin](https://daten.berlin.de/datensaetze/verkehrsdetektion-berlin)
 - [Berlin Open Data – Standorte der Verkehrsdetektion](https://daten.berlin.de/datensaetze/standorte-verkehrsdetektion-berlin)

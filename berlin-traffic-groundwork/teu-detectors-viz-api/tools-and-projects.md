@@ -33,8 +33,10 @@ practice you write your own `curl` glue (it's a few lines — see
   `Stammdaten` are the real "SDK"; access is a list call + file GETs.
 - **Minimal stack:** `curl` (list + download) and `tar`/`gzip` (the new-QA monthly
   `.tgz`). No SDK, no key, no auth. CSV is trivially parseable.
-- **For live/near-real-time**, study `masterportal-addon-sensor-chart` rather than
-  the archive — but note the *open, documented* product is the hourly archive.
+- **For live/near-real-time**, use the **SensorThings/FROST API**
+  (`FROST-Server-TEU/v1.1`, 5-min, anonymous) — see [`api-reference.md`](api-reference.md);
+  `masterportal-addon-sensor-chart` shows how the official map consumes it. Use the
+  blob archive for clean long history.
 
 ## Sources
 
