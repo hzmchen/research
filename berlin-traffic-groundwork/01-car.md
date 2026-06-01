@@ -43,6 +43,7 @@ congestion, accidents, parking, and the environmental/regulatory layer.
 - **Ratings:** Access ★★★ · Quality ★★★ (authoritative, classified, live) ·
   Coverage ★★☆ (main network only; not every street) · Usability ★★☆.
 - 🔬 **Deep dive (with reproducible live queries):** [`teu-detectors-viz-api/`](teu-detectors-viz-api/) — the live OGC **SensorThings/FROST** APIs + the Azure-blob history archive, schema, tools, and a curl-only Torstraße query. ⚠️ **Caveat found:** the infrared **TEU feed is frozen (~2025-07-02)** and the blob archive **ends 2025-06** — Berlin is mid-migration to **thermal cameras** (live, but only 67 sites so far; none on Torstraße). Live ≠ complete right now.
+- 🔬 **Single-site deep dive:** [`tc073-deepdive/`](tc073-deepdive/) — every 5-min PKW count & speed for thermal-cam **TC073 (Straße des 17. Juni)**, with time-series/diurnal/statistical graphs and a breaks-&-outliers analysis that separates **real closures** (29 Mar Half-Marathon → zeros) from **measurement artefacts** (a silent May count-doubling, sensor dropouts/outages). Reproducible + gentle-on-API pipeline; raw data not committed.
 
 ### 🏛 Verkehrsmengenkarte / DTVw — SenMVKU (Umweltatlas 07.01)
 - **What:** modelled **average weekday traffic volume** per network segment;
