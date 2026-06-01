@@ -63,6 +63,70 @@ before trusting a stream.
 > 📄 SensorThings spec: <https://docs.ogc.org/is/18-088/18-088.html> · FROST docs:
 > <https://fraunhoferiosb.github.io/FROST-Server/>
 
+### Datastream anatomy — why one site has hundreds of datastreams
+
+A single Thing exposes **many** datastreams (ThermiCam 216–648, median **432**; TEU
+72–144, median **108**). They are the **cross-product of four dimensions** — a
+datastream name reads as **`{measure} {class} {interval} - {spatial unit}`**:
+
+| Dimension | Values | Count |
+| --- | --- | --- |
+| **Measure** | `Anzahl` (count) · `Geschwindigkeit` (speed) | 2 |
+| **Time aggregation** | `5 Minuten` · `Stunde` · `Tag` · `Woche` · `Monat` · `Jahr` | 6 |
+| **Vehicle class** | ThermiCam: `PKW`, `LKW mit/ohne Anhänger`, `Lieferwagen`, `Krad`, `Bus`, `Fahrrad`, `Fußgänger` (+`KFZ`) ≈ 9 · TEU: `KFZ`, `PKW`, `LKW` = 3 | 3 or ~9 |
+| **Spatial unit** | `Messquerschnitt` (whole cross-section) + per-lane, e.g. `HFB 1. Spur von rechts` | varies (lanes) |
+
+So the per-site total factors as **classes × measures × intervals × spatial units**:
+
+```
+ThermiCam:  9 × 2 × 6 = 108 per spatial unit  →  432 = 108 × 4 (cross-section + 3 lanes)
+TEU:        3 × 2 × 6 =  36 per spatial unit  →  108 =  36 × 3
+```
+
+The count varies per site only by **how many lanes it resolves** (216 = 2 units,
+432 = 4, 648 = 6). Two caveats: the **5-minute** stream is the raw feed and the
+hour→year levels are **server-side rollups** of it (mostly redundant), and many
+class/lane streams (e.g. `Bus`, or `Fußgänger` speed on a car road) exist in the
+schema but are near-empty.
+
+**Example query** — count a site's datastreams and sample their names (the
+`$expand($count=true;$top=0)` trick returns the count without the bodies):
+
+```bash
+B="https://api.viz.berlin.de/FROST-Server-ThermiCam/v1.1"
+# how many datastreams does TC023 have?
+curl -s "$B/Things?\$filter=name eq 'TC023'&\$select=name&\$expand=Datastreams(\$count=true;\$top=0)"
+# sample the first 3 names + units:
+curl -s "$B/Things?\$filter=name eq 'TC023'&\$select=name&\$expand=Datastreams(\$select=name,unitOfMeasurement;\$top=3)"
+```
+
+**Actual return value** (second query, abridged):
+
+```json
+{
+  "value": [
+    {
+      "name": "TC023",
+      "Datastreams@iot.count": 432,
+      "Datastreams": [
+        { "name": "Anzahl Fußgänger 5 Minuten -  Messquerschnitt",
+          "unitOfMeasurement": { "name": "Verkehrsstärke", "symbol": "Fußgänger/5 Minuten", "definition": null } },
+        { "name": "Anzahl Fußgänger Stunde -  Messquerschnitt",
+          "unitOfMeasurement": { "name": "Verkehrsstärke", "symbol": "Fußgänger/Stunde", "definition": null } },
+        { "name": "Anzahl Fußgänger Tag -  Messquerschnitt",
+          "unitOfMeasurement": { "name": "Verkehrsstärke", "symbol": "Fußgänger/Tag", "definition": null } }
+      ],
+      "Datastreams@iot.nextLink": ".../Things(21)/Datastreams?$top=3&$skip=3&..."
+    }
+  ]
+}
+```
+
+The `unitOfMeasurement.symbol` (`Fußgänger/5 Minuten`) encodes the class + interval;
+speed streams instead read `Geschwindigkeit … - …` with a km/h unit. See
+[`thermicam-teu-staleness.md`](thermicam-teu-staleness.md) for per-site datastream
+counts and the inferred observation volume.
+
 ## The history endpoint is an Azure Blob container
 
 `https://api.viz.berlin.de/daten/verkehrsdetektion` is an HTML page whose
