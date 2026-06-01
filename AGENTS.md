@@ -77,6 +77,37 @@ The email follows GitHub's standard no-reply pattern
 (`<user>@users.noreply.github.com`), scoped to `nielsaka` with a `+claudebot`
 label.
 
+## ⚠️ Be a good citizen — never DDoS or overload a service
+
+When querying any external API, website, or data service, the **top priority is not
+to overload it**. A research task is never worth degrading or taking down someone
+else's service. Err heavily on the side of gentleness.
+
+- **Default to sequential, low concurrency.** Do **not** fan out dozens of parallel
+  requests. If you must parallelize, cap it very low (≤2–3) and only after you know
+  the service tolerates it. (A past run hit a public server with 12 concurrent
+  workers for 24 minutes and triggered sustained `504 Gateway Time-out`s — that is a
+  self-inflicted denial of service. Don't.)
+- **Space requests out.** Add a deliberate delay between calls (e.g. ~1–2 s).
+  Hundreds of back-to-back requests, even sequential, can still overwhelm a small
+  service.
+- **Prefer one cheap query over many expensive ones.** Pull data in bulk / with
+  pagination rather than per-item loops; select the *lightest* field that answers
+  the question (e.g. a precomputed summary field instead of scanning and sorting a
+  large child collection). Avoid heavy `$orderby`/expand-on-large-collections
+  patterns when a metadata field already has the answer.
+- **Back off on the first sign of strain.** On `429`, `503`, `504`, or timeouts:
+  **stop**, wait minutes (exponential backoff), and resume gently — do **not** retry
+  in a tight loop, which makes it worse. Persistent errors mean *you* are the
+  problem; pause and rethink the access pattern.
+- **Distinguish "no data" from "request failed."** A timeout/5xx is not an empty
+  result. Record errors separately so flaky responses don't silently become wrong
+  conclusions in the output.
+- **Estimate load before a batch.** Roughly: (number of items) × (requests each) ×
+  (cost per request). If that's large, find a bulk endpoint or sample instead.
+- **Identify yourself and respect limits** where applicable (honor `Retry-After`,
+  robots/ToS, documented rate limits, API keys/quotas).
+
 ## Research tasks — scope & approach
 
 This repo collects research topics. The following conventions apply to **any**
