@@ -8,111 +8,106 @@
 
 ## Method & caveats
 
-"Last reading" = newest observation on a site's **5-minute cross-section count**
-datastream (`Anzahl … 5 Minuten - Messquerschnitt`), END of the `phenomenonTime`
-interval.
+"Last reading" = newest 5-minute cross-section count observation per site, taken
+from the **END of the `phenomenonTime` interval** of the
+`Anzahl PKW 5 Minuten - Messquerschnitt` datastream (the server-maintained interval,
+fetched in one light bulk query per server — no per-site observation scans, to avoid
+overloading the service; see [`AGENTS.md`](../../AGENTS.md) → *Be a good citizen*).
 
-- **TEU** timestamps are **measured per site** and reliable, except a few
-  **implausible future dates** (e.g. `2046` on TE197) which are **sensor clock
-  errors** in the source data — flagged ⚠ and excluded from the "newest" figure.
-- **ThermiCam**: the ThermiCam FROST server returned **sustained `504 Gateway
-  Time-out`** on per-site observation queries during this run (its active sites are
-  data-heavy and the upstream timed out). To avoid overloading the service, querying
-  was **deliberately stopped** (see [`AGENTS.md`](../../AGENTS.md) → *Be a good
-  citizen*). ThermiCam is therefore ranked by each site's own **`status`** flag
-  (`active` = live / `inactive` = not reporting) plus the few 5-min timestamps
-  captured before the server degraded. Exact ThermiCam per-site timestamps should be
-  re-fetched gently once the server recovers.
+- A handful of TEU sites carry **implausible future dates** (e.g. `2046` on TE197) —
+  **sensor clock errors** in the source data; flagged ⚠ and excluded from "newest".
+- "no 5-min data" = the site's PKW 5-min datastream has no observations at all
+  (these are all `status = inactive`/`n.o.k.` sites).
 
 ## Summary
 
-| Server | Sites | Live / reporting | Stale or no data | Newest valid reading | Oldest reading |
+| Server | Sites | Newest reading | Oldest reading | No-data | Notes |
 | --- | --- | --- | --- | --- | --- |
-| **ThermiCam** (thermal cams) | 67 | 38 active | 29 inactive | (live; exact ts unavailable) | — |
-| **TEU** (legacy infrared) | 276 | 247 valid ts | 28 no-data + 1 bad-ts | 2025-10-04 01:05:00 UTC | 2024-02-20 07:40:00 UTC |
+| **ThermiCam** (thermal cams) | 67 | 2026-06-01 10:10:00 UTC | 2025-01-09 11:45:00 UTC | 6 | live feed — 38 sites reported within 48 h |
+| **TEU** (legacy infrared) | 276 | 2025-10-04 01:05:00 UTC | 2024-02-20 07:40:00 UTC | 28 | frozen — 140 sites last reported 2025-07-02 |
 
-**Headline:** TEU is a **frozen** feed — **140 sites all last reported on
-2025-07-02** (the infrared→thermal migration cut-over), with the remainder having
-stopped earlier. ThermiCam now carries the live data via its **38 active**
-sites; **29** ThermiCam sites are inactive (not reporting).
+**Headline:** **ThermiCam is the live feed** — freshest site last reported
+**2026-06-01 10:10:00 UTC** (1 h ago); 6 inactive sites have no
+data. **TEU is frozen** — **140 sites all stopped on 2025-07-02** (the
+infrared→thermal migration cut-over), the rest earlier, 28 `n.o.k.` sites
+with no data.
 
 ---
 
-## A. Thermal cameras — `FROST-Server-ThermiCam` (67 sites)
+## A. Thermal cameras — `FROST-Server-ThermiCam` (67 sites, live)
 
-Ranked by increasing staleness/unavailability: **active (live)** first, then any
-inactive site with a captured last reading (most recent first), then **no-data**
-sites last.
+Ranked by increasing staleness: most recent 5-min reading first; **no-data sites
+last**.
 
 | # | Site | Position | Bezirk | Status | Last 5-min reading | Staleness |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | TC001 | Potsdamer Strasse | Mitte | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 2 | TC003 | Goebenstraße | Tempelhof-Schöneberg | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 3 | TC005 | Hermannstraße | Neukölln | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 4 | TC006 | Hauptstraße | Tempelhof-Schöneberg | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 5 | TC009 | Frankfurter Allee | Friedrichshain-Kreuzberg | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 6 | TC013 | Hauptstraße | Lichtenberg | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 7 | TC014 | Hauptstraße | Lichtenberg | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 8 | TC020 | Warschauer Straße | Friedrichshain-Kreuzberg | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 9 | TC021 | Otto-Suhr-Allee | Charlottenburg-Wilmersdorf | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 10 | TC023 | Danziger Straße | Pankow | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 11 | TC027 | Roedernallee | Reinickendorf | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 12 | TC029 | Grabbeallee | Pankow | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 13 | TC032 | Berliner Straße | Steglitz-Zehlendorf | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 14 | TC034 | Potsdamer Straße | Steglitz-Zehlendorf | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 15 | TC035 | Hohenzollerndamm | Charlottenburg-Wilmersdorf | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 16 | TC036 | Hohenzollerndamm | Charlottenburg-Wilmersdorf | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 17 | TC037 | Hohenzollerndamm | Charlottenburg-Wilmersdorf | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 18 | TC039 | Hohenzollerndamm | Charlottenburg-Wilmersdorf | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 19 | TC040 | Mariendorfer Damm | Tempelhof-Schöneberg | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 20 | TC041 | Von-der-Heydt-Straße | Mitte | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 21 | TC042 | Mariendorfer Damm | Tempelhof-Schöneberg | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 22 | TC043 | Beusselstraße | Mitte | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 23 | TC044 | Altonaer Straße | Mitte | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 24 | TC047 | Otto-Suhr-Allee | Charlottenburg-Wilmersdorf | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 25 | TC048 | Neuköllner Straße | Neukölln | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 26 | TC051 | Gradestraße | Neukölln | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 27 | TC052 | Seestraße | Mitte | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 28 | TC053 | Müllerstraße | Mitte | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 29 | TC054 | Leipziger Straße | Mitte | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 30 | TC056 | Spandauer Damm | Charlottenburg-Wilmersdorf | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 31 | TC057 | Romain-Rolland-Straße | Pankow | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 32 | TC060 | Kurfürstendamm | Charlottenburg-Wilmersdorf | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 33 | TC061 | Antonienstraße | Reinickendorf | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 34 | TC065 | Roedernallee | Reinickendorf | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 35 | TC069 | Puschkinallee | Treptow-Köpenick | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 36 | TC070 | Bornholmer Straße | Pankow | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 37 | TC073 | Straße des 17. Juni | Mitte | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
-| 38 | TC074 | Marienfelder Allee | Tempelhof-Schöneberg | active | 🟢 live — exact ts not retrieved (server 504) | ~live |
+| 1 | TC023 | Danziger Straße | Pankow | active | 2026-06-01 10:10:00 UTC | 1 h |
+| 2 | TC027 | Roedernallee | Reinickendorf | active | 2026-06-01 10:10:00 UTC | 1 h |
+| 3 | TC029 | Grabbeallee | Pankow | active | 2026-06-01 10:10:00 UTC | 1 h |
+| 4 | TC032 | Berliner Straße | Steglitz-Zehlendorf | active | 2026-06-01 10:10:00 UTC | 1 h |
+| 5 | TC020 | Warschauer Straße | Friedrichshain-Kreuzberg | active | 2026-06-01 10:05:00 UTC | 1 h |
+| 6 | TC021 | Otto-Suhr-Allee | Charlottenburg-Wilmersdorf | active | 2026-06-01 10:05:00 UTC | 1 h |
+| 7 | TC013 | Hauptstraße | Lichtenberg | active | 2026-06-01 10:00:00 UTC | 1 h |
+| 8 | TC014 | Hauptstraße | Lichtenberg | active | 2026-06-01 10:00:00 UTC | 1 h |
+| 9 | TC009 | Frankfurter Allee | Friedrichshain-Kreuzberg | active | 2026-06-01 09:55:00 UTC | 1 h |
+| 10 | TC069 | Puschkinallee | Treptow-Köpenick | active | 2026-06-01 08:45:00 UTC | 3 h |
+| 11 | TC070 | Bornholmer Straße | Pankow | active | 2026-06-01 08:45:00 UTC | 3 h |
+| 12 | TC073 | Straße des 17. Juni | Mitte | active | 2026-06-01 08:45:00 UTC | 3 h |
+| 13 | TC074 | Marienfelder Allee | Tempelhof-Schöneberg | active | 2026-06-01 08:45:00 UTC | 3 h |
+| 14 | TC056 | Spandauer Damm | Charlottenburg-Wilmersdorf | active | 2026-06-01 08:40:00 UTC | 3 h |
+| 15 | TC057 | Romain-Rolland-Straße | Pankow | active | 2026-06-01 08:40:00 UTC | 3 h |
+| 16 | TC060 | Kurfürstendamm | Charlottenburg-Wilmersdorf | active | 2026-06-01 08:40:00 UTC | 3 h |
+| 17 | TC061 | Antonienstraße | Reinickendorf | active | 2026-06-01 08:40:00 UTC | 3 h |
+| 18 | TC065 | Roedernallee | Reinickendorf | active | 2026-06-01 08:40:00 UTC | 3 h |
+| 19 | TC051 | Gradestraße | Neukölln | active | 2026-06-01 08:35:00 UTC | 3 h |
+| 20 | TC052 | Seestraße | Mitte | active | 2026-06-01 08:35:00 UTC | 3 h |
+| 21 | TC053 | Müllerstraße | Mitte | active | 2026-06-01 08:35:00 UTC | 3 h |
+| 22 | TC054 | Leipziger Straße | Mitte | active | 2026-06-01 08:35:00 UTC | 3 h |
+| 23 | TC043 | Beusselstraße | Mitte | active | 2026-06-01 08:30:00 UTC | 3 h |
+| 24 | TC044 | Altonaer Straße | Mitte | active | 2026-06-01 08:30:00 UTC | 3 h |
+| 25 | TC047 | Otto-Suhr-Allee | Charlottenburg-Wilmersdorf | active | 2026-06-01 08:30:00 UTC | 3 h |
+| 26 | TC048 | Neuköllner Straße | Neukölln | active | 2026-06-01 08:30:00 UTC | 3 h |
+| 27 | TC037 | Hohenzollerndamm | Charlottenburg-Wilmersdorf | active | 2026-06-01 08:25:00 UTC | 3 h |
+| 28 | TC039 | Hohenzollerndamm | Charlottenburg-Wilmersdorf | active | 2026-06-01 08:25:00 UTC | 3 h |
+| 29 | TC040 | Mariendorfer Damm | Tempelhof-Schöneberg | active | 2026-06-01 08:25:00 UTC | 3 h |
+| 30 | TC041 | Von-der-Heydt-Straße | Mitte | active | 2026-06-01 08:25:00 UTC | 3 h |
+| 31 | TC042 | Mariendorfer Damm | Tempelhof-Schöneberg | active | 2026-06-01 08:25:00 UTC | 3 h |
+| 32 | TC003 | Goebenstraße | Tempelhof-Schöneberg | active | 2026-06-01 08:20:00 UTC | 3 h |
+| 33 | TC005 | Hermannstraße | Neukölln | active | 2026-06-01 08:20:00 UTC | 3 h |
+| 34 | TC006 | Hauptstraße | Tempelhof-Schöneberg | active | 2026-06-01 08:20:00 UTC | 3 h |
+| 35 | TC034 | Potsdamer Straße | Steglitz-Zehlendorf | active | 2026-06-01 08:15:00 UTC | 3 h |
+| 36 | TC035 | Hohenzollerndamm | Charlottenburg-Wilmersdorf | active | 2026-06-01 08:15:00 UTC | 3 h |
+| 37 | TC036 | Hohenzollerndamm | Charlottenburg-Wilmersdorf | active | 2026-06-01 08:15:00 UTC | 3 h |
+| 38 | TC001 | Potsdamer Strasse | Mitte | active | 2026-06-01 08:15:00 UTC | 3 h |
 | 39 | TC015 | Reichpietschufer | Mitte | inactive | 2026-05-28 08:05:00 UTC | 4 d |
-| 40 | TC011 | Lennestraße | Mitte | inactive | 2025-12-09 14:05:00 UTC | 5.7 mo |
-| 41 | TC002 | Potsdamer Strasse | Mitte | inactive | **no 5-min data** | n/a |
-| 42 | TC004 | Hermannstraße | Neukölln | inactive | **no 5-min data** | n/a |
-| 43 | TC007 | Jafféstraße | Charlottenburg-Wilmersdorf | inactive | **no 5-min data** | n/a |
-| 44 | TC008 | Jafféstraße | Charlottenburg-Wilmersdorf | inactive | **no 5-min data** | n/a |
-| 45 | TC010 | Lindenstraße | Friedrichshain-Kreuzberg | inactive | **no 5-min data** | n/a |
-| 46 | TC016 | Spandauer Damm | Charlottenburg-Wilmersdorf | inactive | **no 5-min data** | n/a |
-| 47 | TC017 | Stralauer Allee | Friedrichshain-Kreuzberg | inactive | **no 5-min data** | n/a |
-| 48 | TC022 | Paulsborner Str. | Charlottenburg-Wilmersdorf | inactive | **no 5-min data** | n/a |
-| 49 | TC024 | Grabbeallee | Pankow | inactive | **no 5-min data** | n/a |
-| 50 | TC033 | Gradestraße | Neukölln | inactive | **no 5-min data** | n/a |
-| 51 | TC038 | Französische Straße | Mitte | inactive | **no 5-min data** | n/a |
-| 52 | TC045 | Marienfelder Chaussee | Neukölln | inactive | **no 5-min data** | n/a |
-| 53 | TC046 | Bundesallee | Charlottenburg-Wilmersdorf | inactive | **no 5-min data** | n/a |
-| 54 | TC049 | Tegeler Weg | Charlottenburg-Wilmersdorf | inactive | **no 5-min data** | n/a |
-| 55 | TC050 | Kantstraße | Charlottenburg-Wilmersdorf | inactive | **no 5-min data** | n/a |
-| 56 | TC055 | Müllerstraße | Mitte | inactive | **no 5-min data** | n/a |
-| 57 | TC058 | Bahnhofstraße | Treptow-Köpenick | inactive | **no 5-min data** | n/a |
-| 58 | TC059 | Teltower Damm | Steglitz-Zehlendorf | inactive | **no 5-min data** | n/a |
-| 59 | TC062 | Bahnhofstraße | Treptow-Köpenick | inactive | **no 5-min data** | n/a |
-| 60 | TC063 | Petersburger Straße | Friedrichshain-Kreuzberg | inactive | **no 5-min data** | n/a |
-| 61 | TC064 | Marienfelder Allee | Tempelhof-Schöneberg | inactive | **no 5-min data** | n/a |
-| 62 | TC066 | Müllerstraße | Mitte | inactive | **no 5-min data** | n/a |
-| 63 | TC067 | Markstraße | Reinickendorf | inactive | **no 5-min data** | n/a |
-| 64 | TC068a | Malchower Chaussee | Pankow | inactive | **no 5-min data** | n/a |
-| 65 | TC068b | Malchower Chaussee | Pankow | inactive | **no 5-min data** | n/a |
-| 66 | TC071 | Am Juliusturm | Spandau | inactive | **no 5-min data** | n/a |
-| 67 | TC072 | Seestraße | Mitte | inactive | **no 5-min data** | n/a |
+| 40 | TC050 | Kantstraße | Charlottenburg-Wilmersdorf | inactive | 2026-05-25 07:20:00 UTC | 7 d |
+| 41 | TC055 | Müllerstraße | Mitte | inactive | 2026-05-22 05:20:00 UTC | 10 d |
+| 42 | TC010 | Lindenstraße | Friedrichshain-Kreuzberg | inactive | 2026-05-21 12:30:00 UTC | 11 d |
+| 43 | TC072 | Seestraße | Mitte | inactive | 2026-05-12 23:20:00 UTC | 20 d |
+| 44 | TC017 | Stralauer Allee | Friedrichshain-Kreuzberg | inactive | 2026-05-12 15:40:00 UTC | 20 d |
+| 45 | TC008 | Jafféstraße | Charlottenburg-Wilmersdorf | inactive | 2026-05-09 15:55:00 UTC | 23 d |
+| 46 | TC062 | Bahnhofstraße | Treptow-Köpenick | inactive | 2026-05-04 14:05:00 UTC | 28 d |
+| 47 | TC046 | Bundesallee | Charlottenburg-Wilmersdorf | inactive | 2026-05-01 19:00:00 UTC | 31 d |
+| 48 | TC016 | Spandauer Damm | Charlottenburg-Wilmersdorf | inactive | 2026-04-21 10:20:00 UTC | 41 d |
+| 49 | TC071 | Am Juliusturm | Spandau | inactive | 2026-04-20 14:35:00 UTC | 42 d |
+| 50 | TC067 | Markstraße | Reinickendorf | inactive | 2026-04-15 11:50:00 UTC | 47 d |
+| 51 | TC038 | Französische Straße | Mitte | inactive | 2026-04-10 05:15:00 UTC | 52 d |
+| 52 | TC068a | Malchower Chaussee | Pankow | inactive | 2026-03-18 12:15:00 UTC | 2.5 mo |
+| 53 | TC064 | Marienfelder Allee | Tempelhof-Schöneberg | inactive | 2026-01-12 09:40:00 UTC | 4.6 mo |
+| 54 | TC033 | Gradestraße | Neukölln | inactive | 2025-12-15 13:20:00 UTC | 5.5 mo |
+| 55 | TC011 | Lennestraße | Mitte | inactive | 2025-12-09 14:05:00 UTC | 5.7 mo |
+| 56 | TC045 | Marienfelder Chaussee | Neukölln | inactive | 2025-11-25 10:10:00 UTC | 6.2 mo |
+| 57 | TC049 | Tegeler Weg | Charlottenburg-Wilmersdorf | inactive | 2025-09-20 14:45:00 UTC | 8.3 mo |
+| 58 | TC004 | Hermannstraße | Neukölln | inactive | 2025-06-19 01:25:00 UTC | 11.4 mo |
+| 59 | TC022 | Paulsborner Str. | Charlottenburg-Wilmersdorf | inactive | 2025-04-29 04:10:00 UTC | 13.1 mo |
+| 60 | TC024 | Grabbeallee | Pankow | inactive | 2025-04-23 10:55:00 UTC | 13.3 mo |
+| 61 | TC002 | Potsdamer Strasse | Mitte | inactive | 2025-01-09 11:45:00 UTC | 16.7 mo |
+| 62 | TC007 | Jafféstraße | Charlottenburg-Wilmersdorf | inactive | **no 5-min data** | — |
+| 63 | TC058 | Bahnhofstraße | Treptow-Köpenick | inactive | **no 5-min data** | — |
+| 64 | TC059 | Teltower Damm | Steglitz-Zehlendorf | inactive | **no 5-min data** | — |
+| 65 | TC063 | Petersburger Straße | Friedrichshain-Kreuzberg | inactive | **no 5-min data** | — |
+| 66 | TC066 | Müllerstraße | Mitte | inactive | **no 5-min data** | — |
+| 67 | TC068b | Malchower Chaussee | Pankow | inactive | **no 5-min data** | — |
 
 ---
 
@@ -310,34 +305,34 @@ future timestamps (⚠ sensor clock errors) and **no-data** sites last.
 | 185 | TE125 | zwischen Gardinalstraße und Joachimstr |  | n.o.k. | 2025-06-25 10:00:00 UTC | 11.2 mo |
 | 186 | TE335 | zwischen Flottwellstraße und Köthener  |  | n.o.k. | 2025-06-16 15:35:00 UTC | 11.5 mo |
 | 187 | TE463 | zwischen Am Studio und Adlergestell |  | n.o.k. | 2025-06-15 08:30:00 UTC | 11.5 mo |
-| 188 | TE192 | zwischen Harbigstraße und Messedamm, i |  | n.o.k. | 2025-06-14 17:35:00 UTC | 11.5 mo |
+| 188 | TE192 | zwischen Harbigstraße und Messedamm, i |  | n.o.k. | 2025-06-14 17:35:00 UTC | 11.6 mo |
 | 189 | TE206 | 500 m hinter  Eingang Kaiser-Wilhelm-G |  | n.o.k. | 2025-06-14 08:40:00 UTC | 11.6 mo |
 | 190 | TE229 | 500 m vor Eingang Kaiser-Wilhelm-Gedäc |  | n.o.k. | 2025-06-14 08:40:00 UTC | 11.6 mo |
 | 191 | TE439 | zwischen Herbartstraße und Kuno-Fische |  | n.o.k. | 2025-06-14 07:30:00 UTC | 11.6 mo |
-| 192 | TE508 | zwischen Fuggerstraße und Lietzenburge |  | n.o.k. | 2025-06-11 10:05:00 UTC | 11.6 mo |
+| 192 | TE508 | zwischen Fuggerstraße und Lietzenburge |  | n.o.k. | 2025-06-11 10:05:00 UTC | 11.7 mo |
 | 193 | TE521 | zwischen BAB113 und Eisenhutweg |  | n.o.k. | 2025-06-06 23:20:00 UTC | 11.8 mo |
 | 194 | TE273 | zwischen Max-Dohrn-Straße und AS Jakob |  | n.o.k. | 2025-06-03 23:25:00 UTC | 11.9 mo |
 | 195 | TE507n | zwischen Hohenstaufenstraße und Grunew |  | n.o.k. | 2025-05-31 10:30:00 UTC | 12.0 mo |
 | 196 | TE017 | zwischen Zeile 1 und Späthstraße |  | n.o.k. | 2025-05-30 16:30:00 UTC | 12.0 mo |
-| 197 | TE391 | zwischen Ehrenbergstraße und Naglerstr |  | n.o.k. | 2025-05-30 13:15:00 UTC | 12.0 mo |
-| 198 | TE306 | zwischen Ebertstraße und Bellevuestraß |  | n.o.k. | 2025-05-30 09:40:00 UTC | 12.0 mo |
+| 197 | TE391 | zwischen Ehrenbergstraße und Naglerstr |  | n.o.k. | 2025-05-30 13:15:00 UTC | 12.1 mo |
+| 198 | TE306 | zwischen Ebertstraße und Bellevuestraß |  | n.o.k. | 2025-05-30 09:40:00 UTC | 12.1 mo |
 | 199 | TE133 | zwischen Schwarzbacger Straße und Born |  | n.o.k. | 2025-05-25 10:40:00 UTC | 12.2 mo |
 | 200 | TE129 | zwischen Traberweg und Rummelsburger S |  | n.o.k. | 2025-05-20 08:10:00 UTC | 12.4 mo |
-| 201 | TE549 | Zinnowitzer Straße |  | n.o.k. | 2025-05-03 01:25:00 UTC | 12.9 mo |
+| 201 | TE549 | Zinnowitzer Straße |  | n.o.k. | 2025-05-03 01:25:00 UTC | 13.0 mo |
 | 202 | TE022 | zwischen Bahnunterführung und Alt-Rein |  | n.o.k. | 2025-04-28 06:00:00 UTC | 13.1 mo |
 | 203 | TE202 | zwischen Straße der Pariser Kommune un |  | n.o.k. | 2025-04-20 06:45:00 UTC | 13.4 mo |
 | 204 | TE202n | zwischen Straße der Pariser Kommune un |  | n.o.k. | 2025-04-20 06:45:00 UTC | 13.4 mo |
 | 205 | TE180 | zwischen Tucholskystraße und Borsigstr |  | n.o.k. | 2025-04-13 09:55:00 UTC | 13.6 mo |
 | 206 | TE041 | zwischen Tansvaalstraße und Kongostraß |  | n.o.k. | 2025-04-12 13:05:00 UTC | 13.6 mo |
-| 207 | TE127 | zwischen Helmholtzstraße und Siemensst |  | n.o.k. | 2025-04-05 13:30:00 UTC | 13.8 mo |
-| 208 | TE440 | zwischen Kuno-Fischer-Straße und Herba |  | n.o.k. | 2025-04-02 10:30:00 UTC | 13.9 mo |
-| 209 | TE300 | zwischen Bundesallee und Fasanenstraße |  | n.o.k. | 2025-04-02 08:55:00 UTC | 13.9 mo |
+| 207 | TE127 | zwischen Helmholtzstraße und Siemensst |  | n.o.k. | 2025-04-05 13:30:00 UTC | 13.9 mo |
+| 208 | TE440 | zwischen Kuno-Fischer-Straße und Herba |  | n.o.k. | 2025-04-02 10:30:00 UTC | 14.0 mo |
+| 209 | TE300 | zwischen Bundesallee und Fasanenstraße |  | n.o.k. | 2025-04-02 08:55:00 UTC | 14.0 mo |
 | 210 | TE064 | zwischen Kögelstraße und Großkopfstraß |  | n.o.k. | 2025-03-31 00:40:00 UTC | 14.0 mo |
 | 211 | TE062 | ca. 100 m vor S-Bahn-Brücke |  | n.o.k. | 2025-03-30 19:50:00 UTC | 14.0 mo |
 | 212 | TE175 | zwischen Wolffring und Paradestraße, i |  | n.o.k. | 2025-03-28 05:30:00 UTC | 14.1 mo |
 | 213 | TE196 | zwischen Kinzerallee und Annenallee, H |  | n.o.k. | 2025-03-26 23:35:00 UTC | 14.2 mo |
 | 214 | TE248 | zwischen Wuhletalstraße und Mehrower A |  | n.o.k. | 2025-03-20 13:35:00 UTC | 14.4 mo |
-| 215 | TE334n | zwischen Lützowstraße und Bissingzeile |  | n.o.k. | 2025-03-18 12:30:00 UTC | 14.4 mo |
+| 215 | TE334n | zwischen Lützowstraße und Bissingzeile |  | n.o.k. | 2025-03-18 12:30:00 UTC | 14.5 mo |
 | 216 | TE006 | zwischen Kirchstraße und Potsdamer Str |  | n.o.k. | 2025-03-10 12:35:00 UTC | 14.7 mo |
 | 217 | TE370 | zwischen Charlottenstraße und Markgraf |  | n.o.k. | 2025-03-03 13:00:00 UTC | 14.9 mo |
 | 218 | TE369 | zwischen Markgrafenstraße und Charlott |  | n.o.k. | 2025-02-24 09:00:00 UTC | 15.2 mo |
@@ -346,28 +341,28 @@ future timestamps (⚠ sensor clock errors) and **no-data** sites last.
 | 221 | TE260 | zwischen Leibnitzstraße und Marie-Elis |  | n.o.k. | 2025-02-17 17:40:00 UTC | 15.4 mo |
 | 222 | TE384 | zwischen Walterstraße und Bruno-Bauer- |  | n.o.k. | 2025-02-16 10:10:00 UTC | 15.4 mo |
 | 223 | TE158 | zwischen Diesterwegstraße und Ella-Kay |  | n.o.k. | 2025-02-08 23:40:00 UTC | 15.7 mo |
-| 224 | TE309 | (FR-Südost) zwischen Fennstraße und Se |  | n.o.k. | 2025-02-06 15:20:00 UTC | 15.7 mo |
+| 224 | TE309 | (FR-Südost) zwischen Fennstraße und Se |  | n.o.k. | 2025-02-06 15:20:00 UTC | 15.8 mo |
 | 225 | TE367 | zwischen Getraudenbrücke und Fischerin |  | n.o.k. | 2025-02-01 17:40:00 UTC | 15.9 mo |
 | 226 | TE151n | zwischen Großer Stern und Lutherbrücke |  | n.o.k. | 2025-01-22 23:10:00 UTC | 16.2 mo |
 | 227 | TE352 | zwischen Friedrichstraße und Mauerstra |  | n.o.k. | 2025-01-22 08:20:00 UTC | 16.3 mo |
 | 228 | TE308 | (FR-Nordwest) zwischen Schulzendorfer  |  | n.o.k. | 2025-01-22 06:15:00 UTC | 16.3 mo |
 | 229 | TE302 | zwischen Schöneberger Straße und Köthe |  | n.o.k. | 2024-12-05 13:55:00 UTC | 17.8 mo |
 | 230 | TE366 | zwischen Markgrafenstraße und Hedwigsk |  | n.o.k. | 2024-11-17 14:20:00 UTC | 18.4 mo |
-| 231 | TE555 | zwischen Hessische Str und Chausseestr |  | n.o.k. | 2024-10-01 22:20:00 UTC | 19.9 mo |
+| 231 | TE555 | zwischen Hessische Str und Chausseestr |  | n.o.k. | 2024-10-01 22:20:00 UTC | 20.0 mo |
 | 232 | TE338 | zwischen Klopstockstraße und Großer St |  | n.o.k. | 2024-09-02 03:00:00 UTC | 20.9 mo |
 | 233 | TE392 | zwischen Rochowstraße und Bossestraße  |  | n.o.k. | 2024-08-22 13:10:00 UTC | 21.3 mo |
 | 234 | TE061 | zwischen Karpfenteichstraße und Klinge |  | n.o.k. | 2024-08-10 21:25:00 UTC | 21.7 mo |
 | 235 | TE074 | zwischen Karpfenteichstraße und Klinge |  | n.o.k. | 2024-08-10 21:25:00 UTC | 21.7 mo |
 | 236 | TE519 | zwischen Schlesische Straße und Falcke |  | n.o.k. | 2024-07-04 15:45:00 UTC | 22.9 mo |
-| 237 | TE072 | zwischen Großer Stern und Klopstockstr |  | n.o.k. | 2024-05-17 18:10:00 UTC | 24.4 mo |
+| 237 | TE072 | zwischen Großer Stern und Klopstockstr |  | n.o.k. | 2024-05-17 18:10:00 UTC | 24.5 mo |
 | 238 | TE191 | zwischen Silingenweg und Heerstraße, c |  | n.o.k. | 2024-05-03 22:10:00 UTC | 24.9 mo |
 | 239 | TE533 |  zwischen Sonnenallee und Kiefholzstra |  | n.o.k. | 2024-05-02 09:15:00 UTC | 25.0 mo |
 | 240 | TE534 | zwischen Kiefholzstraße und Sonnenalle |  | n.o.k. | 2024-05-02 09:15:00 UTC | 25.0 mo |
-| 241 | TE431 | zwischen Straßburger Straße und Schönh |  | n.o.k. | 2024-04-29 13:25:00 UTC | 25.0 mo |
+| 241 | TE431 | zwischen Straßburger Straße und Schönh |  | n.o.k. | 2024-04-29 13:25:00 UTC | 25.1 mo |
 | 242 | TE049 | zwischen Weißenseer Weg und Vulkanstra |  | n.o.k. | 2024-04-23 08:10:00 UTC | 25.3 mo |
 | 243 | TE050 | zwischen Vulkanstraße und  Weißenseer  |  | n.o.k. | 2024-04-23 08:10:00 UTC | 25.3 mo |
 | 244 | TE347 | zwischen Zweigstraße und Thulestraße,  |  | n.o.k. | 2024-04-10 00:15:00 UTC | 25.7 mo |
-| 245 | TE244 | zwischen Ludwig-Hoffmann-Brücke und Be |  | n.o.k. | 2024-03-11 18:55:00 UTC | 26.6 mo |
+| 245 | TE244 | zwischen Ludwig-Hoffmann-Brücke und Be |  | n.o.k. | 2024-03-11 18:55:00 UTC | 26.7 mo |
 | 246 | TE056 | zwischen Karlshorster Straße und Emma- |  | n.o.k. | 2024-03-01 11:00:00 UTC | 27.0 mo |
 | 247 | TE161 | zwischen Kochhannstraße und Heidenfeld |  | n.o.k. | 2024-02-20 07:40:00 UTC | 27.3 mo |
 | 248 | TE197 | zwischen Annenallee und Kinzerallee, H |  | n.o.k. | ⚠ 2046-02-03 23:55:00 UTC (implausible — sensor clock error) | ⚠ future |
