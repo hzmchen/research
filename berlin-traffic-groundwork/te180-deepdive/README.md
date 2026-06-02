@@ -88,6 +88,34 @@ broad afternoon, and higher speeds.*
 *Weekday means and the hour×weekday volume heatmap — the Mon–Fri morning ridge and
 the broader, later weekend block.*
 
+## Day-pattern decomposition (by month / week / day of week)
+
+The single time-of-day curve above (fig. 03) averages over the whole year. These
+three figures **break that diurnal profile apart** to show how its *shape* drifts
+over time, each with **weekday (Mon–Fri) and weekend (Sat–Sun) in separate panels**
+(six plots in all). Every line is one group's mean PKW count by hour (Berlin local,
+5-min resolution); all use a **progressive `viridis` ramp** so chronology reads
+straight off the colour — **dark purple = earliest, bright yellow = latest**.
+
+![day pattern by month](figures/11_day_pattern_by_month.png)
+*One line per **month** (2023-02 → 2024-01). The weekday morning peak holds its
+~08:00 position year-round while **daytime volume stratifies seasonally** — the
+brighter (autumn/winter) lines sit above the darker (late-winter/spring) ones,
+matching the slow volume rise in the daily overview. Weekends keep the same broad
+midday plateau across all months.*
+
+![day pattern by week](figures/12_day_pattern_by_week.png)
+*Same idea at **weekly** resolution (~48 weeks; the colour **bar** replaces a legend
+that many lines would swamp). The dense band makes the **week-to-week spread** of the
+profile visible, and the colour gradient shows the seasonal drift is monotone rather
+than noisy.*
+
+![day pattern by day of week](figures/13_day_pattern_by_dow.png)
+*One line per **day of week**. Mon–Fri are tightly bunched with the shared sharp
+~08:00 commute spike (Friday's afternoon runs slightly longer); the weekend panel
+shows **no morning peak at all** — a broad 12:00–18:00 plateau with **Saturday
+sitting just above Sunday**.*
+
 ## Statistical view
 
 ![distributions](figures/06_distributions.png)
@@ -140,7 +168,7 @@ step, **TE180's year is cleaner than TC073's**: the only data-quality issue is
 ```bash
 cd berlin-traffic-groundwork/te180-deepdive
 python3 fetch.py        # idempotent + gentle: caches data/te180_pkw_5min.csv (skips if present)
-python3 analyze.py      # deterministic: regenerates figures/01-10 + data/{outages,summary}.json
+python3 analyze.py      # deterministic: regenerates figures/01-13 + data/{outages,summary}.json
 python3 map.py          # static location map (figures/00_location_map.png; one tile fetch)
 ```
 

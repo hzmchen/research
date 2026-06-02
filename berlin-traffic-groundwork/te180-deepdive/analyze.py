@@ -18,6 +18,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.cm as cm
+from matplotlib.colors import Normalize
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "data", "te180_pkw_5min.csv")
@@ -119,6 +121,76 @@ def fig_heatmap(df):
     ax.set_xlabel("hour of day (Berlin local)"); ax.set_title("Mean car count — weekday × hour")
     fig.colorbar(im, ax=ax, label="PKW / 5 min"); ax.grid(False)
     fig.tight_layout(); fig.savefig(f"{FIG}/05_heatmap_hour_weekday.png"); plt.close(fig)
+
+# ---------------------------------------- day pattern decomposed (month/week/dow)
+# Each figure shows the mean car-count time-of-day profile (Berlin local, 5-min
+# resolution), with one line per group and a *progressive* (sequential) colour
+# scheme so the chronological order of the groups is read straight off the colour.
+# Weekday (Mon-Fri) and weekend (Sat-Sun) are drawn in separate panels.
+def _day_fields(df):
+    d = df[df.present].copy()
+    ln = d["local"].dt.tz_localize(None)            # naive Berlin wall-clock
+    d["tod"] = ln.dt.hour + ln.dt.minute / 60       # 0..24 at 5-min steps
+    d["month"] = ln.dt.to_period("M").astype(str)   # "2023-02" .. "2024-01"
+    d["week_start"] = ln.dt.to_period("W-MON").dt.start_time  # Monday of each week
+    d["weekend"] = d["dow"] >= 5
+    return d
+
+def _profile_line(ax, sub, color, label=None, lw=1.2):
+    if sub.empty:
+        return
+    prof = sub.groupby("tod")["count"].mean()
+    ax.plot(prof.index, prof.values, color=color, lw=lw, label=label)
+
+def _style_tod(ax, title):
+    ax.set_xlim(0, 24); ax.set_xticks(range(0, 25, 3))
+    ax.set_xlabel("hour of day (Berlin local)"); ax.set_ylabel("PKW / 5 min")
+    ax.set_title(title)
+
+def fig_day_pattern_by_month(d):
+    months = sorted(d["month"].unique())
+    cmap = plt.get_cmap("viridis")
+    cols = {m: cmap(i / max(1, len(months) - 1)) for i, m in enumerate(months)}
+    fig, ax = plt.subplots(1, 2, figsize=(13, 4.6), sharey=True)
+    for a, (lab, wknd) in zip(ax, [("weekday (Mon–Fri)", False), ("weekend (Sat–Sun)", True)]):
+        sub = d[d.weekend == wknd]
+        for m in months:
+            _profile_line(a, sub[sub.month == m], cols[m], label=m)
+        _style_tod(a, f"{TITLE} — day pattern by month, {lab}")
+        a.legend(title="month", fontsize=6.5, ncol=2)
+    fig.tight_layout(); fig.savefig(f"{FIG}/11_day_pattern_by_month.png"); plt.close(fig)
+
+def fig_day_pattern_by_week(d):
+    weeks = sorted(d["week_start"].unique())
+    cmap = plt.get_cmap("viridis")
+    nums = mdates.date2num(pd.to_datetime(list(weeks)))
+    norm = Normalize(nums.min(), nums.max())
+    fig, ax = plt.subplots(1, 2, figsize=(13, 4.6), sharey=True)
+    for a, (lab, wknd) in zip(ax, [("weekday (Mon–Fri)", False), ("weekend (Sat–Sun)", True)]):
+        sub = d[d.weekend == wknd]
+        for w in weeks:
+            _profile_line(a, sub[sub.week_start == w],
+                          cmap(norm(mdates.date2num(pd.Timestamp(w)))), lw=0.9)
+        _style_tod(a, f"{TITLE} — day pattern by week, {lab}")
+    # one shared colorbar maps line colour -> week (chronology, incl. year wrap)
+    sm = cm.ScalarMappable(norm=norm, cmap=cmap); sm.set_array([])
+    cb = fig.colorbar(sm, ax=ax, fraction=0.025, pad=0.01)
+    cb.set_label("week (start date)")
+    cb.ax.yaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+    fig.savefig(f"{FIG}/12_day_pattern_by_week.png", bbox_inches="tight"); plt.close(fig)
+
+def fig_day_pattern_by_dow(d):
+    cmap = plt.get_cmap("viridis")
+    fig, ax = plt.subplots(1, 2, figsize=(13, 4.6), sharey=True)
+    for a, (lab, days) in zip(ax, [("weekday (Mon–Fri)", range(0, 5)),
+                                    ("weekend (Sat–Sun)", range(5, 7))]):
+        days = list(days)
+        for i, dow in enumerate(days):
+            _profile_line(a, d[d.dow == dow], cmap(i / max(1, len(days) - 1)),
+                          label=WD[dow])
+        _style_tod(a, f"{TITLE} — day pattern by day of week, {lab}")
+        a.legend(title="day", fontsize=7)
+    fig.tight_layout(); fig.savefig(f"{FIG}/13_day_pattern_by_dow.png"); plt.close(fig)
 
 # ------------------------------------------------------------------ statistics
 def fig_distributions(df):
@@ -240,6 +312,8 @@ def main():
     df = load()
     fig_overview(df)
     fig_week(df); fig_tod(df); fig_weekday(df); fig_heatmap(df)
+    dd = _day_fields(df)
+    fig_day_pattern_by_month(dd); fig_day_pattern_by_week(dd); fig_day_pattern_by_dow(dd)
     fig_distributions(df); fig_boxplots(df); fig_fundamental(df)
     rep, out_rows = analyze_breaks(df)
     fig_daily_coverage(df, out_rows)
