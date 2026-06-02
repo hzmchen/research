@@ -1,0 +1,4 @@
+# Raw/derived observation data is NOT committed (re-fetch via fetch.py)
+data/
+__pycache__/
+*.pyc
