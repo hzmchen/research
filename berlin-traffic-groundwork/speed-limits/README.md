@@ -21,6 +21,7 @@ and [`../01-car.md`](../01-car.md) (car-mode sources, incl. the measured-speed f
 | [`fis-broker-tempolimits.md`](fis-broker-tempolimits.md) | **The authoritative answer** — SenMVKU's `Tempolimits` WFS/WMS in the Geoportal (FIS-Broker). Live schema, all fields, the speed-value distribution, licence, and copy-paste WFS queries. |
 | [`osm-maxspeed.md`](osm-maxspeed.md) | **OpenStreetMap `maxspeed`** — live Overpass coverage counts for Berlin, the tagging model (incl. implicit/zone limits), and reproducible queries. |
 | [`viz-and-datex.md`](viz-and-datex.md) | **VIZ / DPS and the federal layer** — what VIZ actually does (and doesn't) for static limits, plus the Mobilithek / DATEX II national-publication channel. |
+| [`str17juni-example/`](str17juni-example/) | **Worked example at the TC073 location** (Straße des 17. Juni) — live WFS query, API spec, formats, and a **static map** of the ordered limits around the detector. |
 
 ## Executive summary
 
