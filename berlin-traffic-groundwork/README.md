@@ -30,6 +30,14 @@ licence, and how good it is*.
 | Private / commercial providers | [`07-commercial.md`](07-commercial.md) |
 | **Cross-cutting comparison + executive summary** | [`08-summary.md`](08-summary.md) |
 
+## Deep dives
+
+| Topic | Directory |
+| ----- | --------- |
+| TEU detectors & the VIZ/DPS data API | [`teu-detectors-viz-api/`](teu-detectors-viz-api/) |
+| Single-site detector deep dive (TC073, Str. des 17. Juni) | [`tc073-deepdive/`](tc073-deepdive/) |
+| **Legal speed limits** (OSM · FIS-Broker/Geoportal · VIZ) | [`speed-limits/`](speed-limits/) |
+
 ## Rating scheme
 
 Each source is rated on four axes, scored **★☆☆ (low) · ★★☆ (medium) · ★★★ (high)**:

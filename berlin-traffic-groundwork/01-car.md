@@ -69,6 +69,18 @@ congestion, accidents, parking, and the environmental/regulatory layer.
 - **Ratings:** Access ★★☆ · Quality ★★☆ · Coverage ★☆☆ (district-patchwork) ·
   Usability ★★☆.
 
+### 🏛/🌐 Legal speed limits (Tempolimits) — SenMVKU Geoportal + OSM
+- **What:** the **posted/ordered** limit of a street (≠ the *measured* speed in the
+  detector feeds or the `vmzlos` free-flow reference). Authoritative open source is
+  SenMVKU's **`Tempolimits` WFS/WMS** in the Geoportal (`gdi.berlin.de`,
+  `tempolimits:hoechstgeschwindigkeit`, **29,800 segments**, dl-de/**zero**-2.0) — but it
+  stores **only deviations from the default 50** (95.6 % are Tempo 30). **OSM `maxspeed`**
+  is the citywide complement (~94.8 % of drivable ways tagged; ODbL).
+- 🔬 **Deep dive:** [`speed-limits/`](speed-limits/) — live WFS/Overpass verification,
+  full schema, speed-value distribution, reproducible queries, and the VIZ/DATEX II story.
+- **Ratings:** Access ★★★ · Quality ★★★ (Geoportal authoritative) · Coverage ★★☆
+  (Geoportal = exceptions only; OSM fills the rest) · Usability ★★☆ (OGC/GIS).
+
 ### 🏛 Environmental zone / regulation (Umweltzone, vehicle registrations)
 - **What:** Berlin's low-emission **Umweltzone** boundary (geodata in
   FIS-Broker); KBA vehicle-registration stats (federal); taxi/Mietwagen
@@ -80,6 +92,7 @@ congestion, accidents, parking, and the environmental/regulatory layer.
 | Need | Best source | Format | Live? |
 | ---- | ----------- | ------ | ----- |
 | Real-time volume/speed at a point | TEU detectors (VIZ) | JSON/CSV | ✅ |
+| Legal/posted speed limit of a street | Geoportal `Tempolimits` WFS (+ OSM `maxspeed` to fill default-50) | WFS/WMS · OSM | ❌ (static) |
 | Network-wide volume per street | Verkehrsmengenkarte DTVw | WMS/WFS | ❌ (periodic) |
 | Where crashes happen | Unfallatlas | CSV/SHP | ❌ (yearly) |
 | Current congestion / LOS / link speed (public, but INRIX-sourced, no open licence) | VMZ `vmzlos` Verkehrslage | WMS/WFS (+GetFeatureInfo) | ✅ (rendered; no history) |
