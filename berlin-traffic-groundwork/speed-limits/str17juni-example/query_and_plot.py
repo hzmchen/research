@@ -23,6 +23,11 @@ import json, math, os, urllib.parse, urllib.request
 HERE = os.path.dirname(os.path.abspath(__file__))
 GEOJSON = os.path.join(HERE, "data", "tempolimits_str17juni.geojson")
 PNG = os.path.join(HERE, "figures", "tempolimits_str17juni.png")
+OSM_JSON = os.path.join(HERE, "data", "osm_maxspeed_str17juni.json")
+OSM_PNG = os.path.join(HERE, "figures", "osm_maxspeed_str17juni.png")
+OVERPASS = "https://overpass-api.de/api/interpreter"
+DRIVABLE = ("motorway|trunk|primary|secondary|tertiary|unclassified|residential|"
+            "living_street|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link")
 
 # --- TC073 location (from thermicam-camera-map.md) ---------------------------
 TC073 = (13.34194, 52.51376)  # lon, lat
@@ -165,7 +170,118 @@ def plot(feats):
     print(f"\nwrote {os.path.relpath(PNG, HERE)}")
 
 
+# ---------------------------------------------------------------------------
+# OSM complement: the same bbox via the Overpass API. Unlike the Geoportal
+# layer, OSM tags the default-50 streets too (incl. Straße des 17. Juni itself),
+# so it resolves to a limit for *every* drivable way, not just the exceptions.
+# ---------------------------------------------------------------------------
+OSM_QUERY = (
+    "[out:json][timeout:120];"
+    'way["highway"~"^(%s)$"](%f,%f,%f,%f);'
+    "out geom tags;" % (DRIVABLE, BBOX[1], BBOX[0], BBOX[3], BBOX[2])
+)
+
+
+def fetch_osm():
+    if os.path.exists(OSM_JSON):
+        with open(OSM_JSON, encoding="utf-8") as fh:
+            return json.load(fh)
+    body = urllib.parse.urlencode({"data": OSM_QUERY}).encode()
+    req = urllib.request.Request(OVERPASS, data=body,
+                                 headers={"User-Agent": "research-bot/1.0"})
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        data = json.load(resp)
+    with open(OSM_JSON, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, ensure_ascii=False)
+    return data
+
+
+def _num(ms):
+    """OSM maxspeed string -> int km/h, or None (implicit/untagged/non-numeric)."""
+    try:
+        return int(str(ms).strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def summarise_osm(data):
+    from collections import Counter
+    ways = data["elements"]
+    print(f"\n# OSM complement — Overpass, same bbox")
+    print(f"  endpoint    {OVERPASS}")
+    print(f"  query       way[highway~drivable]({BBOX[1]},{BBOX[0]},{BBOX[3]},{BBOX[2]}); out geom tags;")
+    print(f"  licence     ODbL (© OpenStreetMap contributors)")
+    by = Counter(w["tags"].get("maxspeed", "<none>") for w in ways)
+    tagged = sum(n for k, n in by.items() if k != "<none>")
+    print(f"\n  {len(ways)} drivable ways · {tagged} with explicit maxspeed "
+          f"({100*tagged/len(ways):.1f}%)")
+    for k, n in by.most_common():
+        print(f"    {n:3d}  maxspeed={k}")
+    s17 = [w for w in ways if "17. Juni" in w["tags"].get("name", "")]
+    if s17:
+        print(f"\n  Straße des 17. Juni: {len(s17)} ways, "
+              f"maxspeed={sorted({w['tags'].get('maxspeed') for w in s17})} "
+              f"-> OSM HAS the default-50 the Geoportal omits.")
+    return ways
+
+
+def plot_osm(ways):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+    import contextily as cx
+
+    fig, ax = plt.subplots(figsize=(11, 7))
+    seen = set()
+    for w in ways:
+        v = _num(w["tags"].get("maxspeed"))
+        c = COLOR.get(v, "#9e9e9e")  # grey = implicit/untagged
+        geom = w.get("geometry") or []
+        if len(geom) < 2:
+            continue
+        xs, ys = zip(*(merc(p["lon"], p["lat"]) for p in geom))
+        ax.plot(xs, ys, color=c, lw=2.4, solid_capstyle="round", zorder=3, alpha=0.9)
+        seen.add(v)
+
+    tx, ty = merc(*TC073)
+    ax.plot(tx, ty, marker="*", color="black", markersize=22, zorder=5,
+            markeredgecolor="white", markeredgewidth=1.2)
+    ax.annotate("TC073 · Straße des 17. Juni\n(OSM maxspeed = 50, explicitly tagged)",
+                (tx, ty), xytext=(12, 12), textcoords="offset points",
+                fontsize=9, fontweight="bold", zorder=6,
+                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="black", alpha=0.85))
+
+    bx0, by0 = merc(BBOX[0], BBOX[1]); bx1, by1 = merc(BBOX[2], BBOX[3])
+    ax.set_xlim(bx0, bx1); ax.set_ylim(by0, by1)
+    ax.set_xticks([]); ax.set_yticks([])
+    try:
+        cx.add_basemap(ax, crs="EPSG:3857", source=cx.providers.CartoDB.Positron,
+                       attribution_size=6)
+    except Exception as e:
+        print(f"  (basemap skipped: {e})")
+
+    order = [v for v in (80, 70, 60, 50, 40, 30, 20, 10) if v in seen]
+    handles = [Line2D([0], [0], color=COLOR[v], lw=3, label=f"{v} km/h") for v in order]
+    if None in seen:
+        handles.append(Line2D([0], [0], color="#9e9e9e", lw=3, label="implicit / untagged"))
+    handles.append(Line2D([0], [0], marker="*", color="black", lw=0,
+                          markersize=12, label="TC073 detector"))
+    ax.legend(handles=handles, loc="lower left", fontsize=8, framealpha=0.9,
+              title="OSM maxspeed")
+    ax.set_title("OpenStreetMap `maxspeed` around TC073 / Straße des 17. Juni\n"
+                 "every drivable way resolves to a limit — incl. the default-50 arterial",
+                 fontsize=11)
+    fig.tight_layout()
+    fig.savefig(OSM_PNG, dpi=140, bbox_inches="tight")
+    print(f"\nwrote {os.path.relpath(OSM_PNG, HERE)}")
+
+
 if __name__ == "__main__":
     data = fetch()
     feats = summarise(data)
     plot(feats)
+
+    osm = fetch_osm()
+    ways = summarise_osm(osm)
+    plot_osm(ways)
