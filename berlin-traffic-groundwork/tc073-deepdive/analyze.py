@@ -108,7 +108,7 @@ def fig_heatmap(df):
     fig, ax = plt.subplots(figsize=(12, 3.8))
     im = ax.imshow(piv.values, aspect="auto", cmap="magma", origin="upper")
     ax.set_yticks(range(7)); ax.set_yticklabels(WD); ax.set_xticks(range(0, 24, 2))
-    ax.set_xlabel("hour of day (UTC)"); ax.set_title("Mean car count — weekday × hour")
+    ax.set_xlabel("hour of day (Berlin local)"); ax.set_title("Mean car count — weekday × hour")
     fig.colorbar(im, ax=ax, label="PKW / 5 min"); ax.grid(False)
     fig.tight_layout(); fig.savefig(f"{FIG}/05_heatmap_hour_weekday.png"); plt.close(fig)
 
@@ -138,7 +138,7 @@ def fig_boxplots(df):
     ax[0].set_ylabel("PKW / 5 min"); ax[0].set_title("Car count distribution by hour (box = IQR, points = outliers)")
     ax[1].boxplot(data_s, positions=range(24), widths=0.6, showfliers=True,
                   flierprops=dict(marker=".", markersize=2, alpha=0.3))
-    ax[1].set_ylabel("speed (km/h)"); ax[1].set_xlabel("hour of day (UTC)")
+    ax[1].set_ylabel("speed (km/h)"); ax[1].set_xlabel("hour of day (Berlin local)")
     ax[1].set_title("Speed distribution by hour")
     fig.tight_layout(); fig.savefig(f"{FIG}/07_boxplots_by_hour.png"); plt.close(fig)
 
