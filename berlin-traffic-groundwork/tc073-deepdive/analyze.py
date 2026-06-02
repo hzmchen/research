@@ -17,6 +17,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.cm as cm
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "data", "tc073_pkw_5min.csv")
@@ -149,7 +150,10 @@ def fig_fundamental(df):
                     c=(d["hour"].values), cmap="twilight")
     ax.set_xlabel("PKW / 5 min (flow)"); ax.set_ylabel("speed (km/h)")
     ax.set_title("Speed vs flow (fundamental-diagram view), coloured by hour")
-    fig.colorbar(sc, ax=ax, label="hour")
+    # colorbar from an opaque proxy (same cmap/norm) so the scatter's alpha
+    # doesn't wash out the swatch and make the hour scale unreadable
+    sm = cm.ScalarMappable(norm=sc.norm, cmap=sc.cmap); sm.set_array([])
+    fig.colorbar(sm, ax=ax, label="hour")
     fig.tight_layout(); fig.savefig(f"{FIG}/08_speed_vs_flow.png"); plt.close(fig)
 
 # ----------------------------------------------------- breaks / outages / zeros
