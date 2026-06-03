@@ -48,8 +48,10 @@ congestion, accidents, parking, and the environmental/regulatory layer.
 ### 🏛 Verkehrsmengenkarte / DTVw — SenMVKU (Umweltatlas 07.01)
 - **What:** modelled **average weekday traffic volume** per network segment;
   breaks out Kfz, **trucks >3.5 t**, buses, motorcycles, **and bicycles**.
-  Editions: 2023, 2019, 2014, 2005, 1998 (time series). Conversion factors
-  published for deriving DTV/peak-hour values.
+  Published per **cross-section** (both directions summed). New edition **every 4
+  years since 2019**; series years 1991/1993/1998/2001/2004/2009/2014/2019/2023.
+  Conversion factors published for deriving DTV/peak-hour values. Full detail
+  (definition, balancing, extrapolation) in [`dtv-dtvw-reference.md`](dtv-dtvw-reference.md).
 - **Access:** open download + **WMS/WFS**; also in FIS-Broker. Updated 2024-12-06.
 - **Ratings:** Access ★★★ · Quality ★★☆ (modelled/periodic, not live) ·
   Coverage ★★★ (whole main network, multi-modal volumes) · Usability ★★☆ (GIS).
