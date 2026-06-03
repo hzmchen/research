@@ -53,6 +53,9 @@ congestion, accidents, parking, and the environmental/regulatory layer.
 - **Access:** open download + **WMS/WFS**; also in FIS-Broker. Updated 2024-12-06.
 - **Ratings:** Access ★★★ · Quality ★★☆ (modelled/periodic, not live) ·
   Coverage ★★★ (whole main network, multi-modal volumes) · Usability ★★☆ (GIS).
+- 🔬 **Reference:** [`dtv-dtvw-reference.md`](dtv-dtvw-reference.md) — exactly where to get
+  **DTVw** vs **DTV**, their meaning, editions/time range, status/licence, the official
+  **DTVw→DTV factors** (0.91 Kfz / 0.82 Lkw), and how DTV relates to Berlin's street categories.
 
 ### 🏛/🌐 Straßenverkehrsunfälle + Unfallatlas — Destatis / Berlin
 - **What:** geocoded **injury accidents** with mode flags (car, bike, motorcycle,

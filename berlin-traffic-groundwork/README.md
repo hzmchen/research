@@ -34,6 +34,7 @@ licence, and how good it is*.
 
 | Topic | Directory |
 | ----- | --------- |
+| **DTV & DTVw reference** (meaning, sources, editions, conversion) | [`dtv-dtvw-reference.md`](dtv-dtvw-reference.md) |
 | TEU detectors & the VIZ/DPS data API | [`teu-detectors-viz-api/`](teu-detectors-viz-api/) |
 | Single-site detector deep dive (TC073, Str. des 17. Juni) | [`tc073-deepdive/`](tc073-deepdive/) |
 | **Legal speed limits** (OSM · FIS-Broker/Geoportal · VIZ) | [`speed-limits/`](speed-limits/) |
