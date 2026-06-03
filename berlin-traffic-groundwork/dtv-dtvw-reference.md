@@ -126,6 +126,56 @@ balanced to its own reference year, so cross-edition comparison is approximate
 - **Class definitions:** "Lkw" here means **>3.5 t zulässiges Gesamtgewicht**
   (RLS-19 splits light/heavy); bicycle volume is a **12 h** daytime DTVw, not 24 h.
 
+## 6 · DTV in context — Berlin's street categories (Kat 0–IV)
+
+A DTV/DTVw figure is most useful read **against the function of the street that
+carries it**. Berlin classifies its **übergeordnetes Straßennetz** ("StEP-Netz",
+published with the **StEP Mobilität und Verkehr**) into **Verbindungsfunktions­stufen**
+(connection-function levels) **0–IV**, following the FGSV **RIN 2008** guideline.
+This network is ~**1,500 km** of Berlin's ~**5,350 km** total; the Senate (SenMVKU
+Abt. IV) owns levels 0–IV, while the remaining **Nebennetz** is the **districts'**
+(Bezirke) responsibility. The classification is geometry that the
+Verkehrsmengenkarte hangs its volumes on, so **every DTVw segment can be joined to
+its category** (Geoportal layer `strnetz`, WFS `https://gdi.berlin.de/services/wfs/strnetz`).
+
+| Stufe | Berlin name (RIN name) | Function — what it connects | Typical examples |
+| --- | --- | --- | --- |
+| **0** | kontinentale Straßenverbindung | between metropolitan regions | A 10 ring (only a few km in Berlin, Karow/Buch) |
+| **I** | großräumige Straßenverbindung | Oberzentren ↔ historische Mitte / City West | city motorways (Stadtautobahn), B1/B2/B5/B96a |
+| **II** | übergeordnete Straßenverbindung | district main centres, airports/rail/ports → level I | Landsberger Allee, Tempelhofer Damm |
+| **III** | örtliche Straßenverbindung | Ortsteile / minor centres ↔ main centres | Groß-Ziethener Str., Königsheideweg |
+| **IV** | Ergänzungsstraßen | access to residential/commercial/industrial areas, tram/bus corridors | Wilhelminenhofstr., Montanstr. |
+
+**How DTV relates to the categories — and the trap:**
+
+- **Category is assigned by *function*, not by volume.** Under RIN 2008 the level
+  follows the centres a road connects (via the StEP Zentren hierarchy), so DTV is
+  **not** the primary criterion. A high-category road *usually* carries high DTV,
+  but the mapping is correlational, not definitional.
+- **Volume appears only as a *supplementary* criterion.** Older/secondary guidance
+  cites indicative bands — e.g. **Kat II ≳ 50,000 Kfz/Tag**, **Kat III ≳ 25,000
+  Kfz/Tag** — but the current official classification note (SenMVKU, 10/2025)
+  defines the levels by function and does **not** list DTV thresholds. Treat those
+  numbers as rules-of-thumb, not cut-offs.
+- **The two datasets share a network, so cross them deliberately:** join the
+  **DTVw** value (Verkehrsmengenkarte 07.01) to the **Verbindungsfunktionsstufe**
+  (`strnetz`) to get "volume by road class" — useful for prioritising, screening,
+  or sanity-checking a segment's category against what it actually carries.
+- **Mind the discrepancies the Senate itself flags:** some heavily-loaded streets
+  sit in residential settings (function ≠ measured load), and category can change
+  on yearly updates (roads enter/leave the übergeordnetes Netz). Always pair a DTV
+  value with the *edition* of both the volume map and the network classification.
+- **Different "category" systems exist — don't conflate them.** The
+  Verbindungsfunktionsstufe (0–IV, planning/RIN) is distinct from the **RLS-19
+  road-type classes** ("Stadtstraße/Gemeindestraße >10,000 Kfz/24h" etc.) used to
+  pick noise/peak-hour factors when converting DTV. The conversion-factor study
+  (§3) tested whether DTVw→DTV factors differ by Verbindungsfunktionsstufe; finding
+  no significant split, it kept a single citywide factor.
+
+Deeper street-network/legal-attribute material lives in
+[`speed-limits/`](speed-limits/); the network geometry itself is the
+**Detailnetz** referenced in [`00-platforms.md`](00-platforms.md).
+
 ## Sources
 
 - [daten.berlin.de — Verkehrsmengen DTVw 2023 [WMS]](https://daten.berlin.de/datensaetze/verkehrsmengen-dtvw-2023-wms-efc1dc7a)
@@ -135,3 +185,6 @@ balanced to its own reference year, so cross-edition comparison is approximate
 - [Hinweise und Faktoren zur Umrechnung von Verkehrsmengen (PDF, 04/2022)](https://www.berlin.de/sen/uvk/_assets/verkehr/verkehrsdaten/umrechungsfaktoren-von-verkehrsmengen/hinweise-und-faktoren-zur-umrechnung-von-verkehrsmengen.pdf)
 - [Rechenbeispiel zur Umrechnung DTVw→DTV (PDF)](https://www.berlin.de/sen/uvk/_assets/verkehr/verkehrsdaten/umrechungsfaktoren-von-verkehrsmengen/rechenbeispiel.pdf)
 - [Geoportal Berlin (gdi.berlin.de) — WMS/WFS services & FIS-Broker](https://gdi.berlin.de/)
+- [SenMVKU — Berliner Straßennetz, Erläuterung zur Klassifizierung (PDF, 10/2025)](https://www.berlin.de/sen/uvk/_assets/verkehr/verkehrsplanung/strassen-und-kfz-verkehr/uebergeordnetes-strassennetz/berliner-strassennetz-klassifizierung.pdf)
+- [SenMVKU — Übergeordnetes Straßennetz (StEP-Netz) landing page](https://www.berlin.de/sen/uvk/mobilitaet-und-verkehr/verkehrsplanung/strassen-und-kfz-verkehr/uebergeordnetes-strassennetz/)
+- [Wikipedia — Übergeordnetes Straßennetz von Berlin](https://de.wikipedia.org/wiki/%C3%9Cbergeordnetes_Stra%C3%9Fennetz_von_Berlin)
