@@ -19,7 +19,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.cm as cm
-import matplotlib.patheffects as pe
 from matplotlib.colors import Normalize, LinearSegmentedColormap
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -224,16 +223,30 @@ BERLIN_HOLIDAYS = {
     "2023-12-26": "2nd Christmas", "2024-01-01": "New Year",
 }
 
+# Days that are not band-depth outliers but are worth flagging for context.
+EXTRA_ANNOTATE = ("2023-05-19",)   # bridge Friday after Ascension (Thu 18 May 2023)
+
 def _holiday_tag(d):
-    """Short reason-tag for an outlier day: the holiday itself, an adjacent holiday
-    (long weekend), the post-outage return week, or '—' for an ordinary outlier."""
+    """Short reason-tag for a flagged day: the holiday itself, a bridge day / long
+    weekend around a nearby holiday, the post-outage return week, or '—' otherwise."""
     d = pd.Timestamp(d); key = d.strftime("%Y-%m-%d")
     if key in BERLIN_HOLIDAYS:
         return BERLIN_HOLIDAYS[key]
-    for off in (-1, 1):
-        nb = (d + pd.Timedelta(days=off)).strftime("%Y-%m-%d")
-        if nb in BERLIN_HOLIDAYS:
-            return f"by {BERLIN_HOLIDAYS[nb]}"
+    near = None                                         # closest holiday within 3 days
+    for off in range(1, 4):
+        for s in (-1, 1):
+            nb = d + pd.Timedelta(days=s * off)
+            if nb.strftime("%Y-%m-%d") in BERLIN_HOLIDAYS:
+                near = (s * off, BERLIN_HOLIDAYS[nb.strftime("%Y-%m-%d")], nb); break
+        if near:
+            break
+    if near:
+        delta, name, nb = near
+        if name == "Good Friday":
+            return "Easter weekend"
+        if delta == -1 and nb.dayofweek == 3:           # Friday right after a Thursday holiday
+            return f"{name} bridge"
+        return f"{name} weekend"
     if pd.Timestamp("2024-01-02") <= d <= pd.Timestamp("2024-01-13"):
         return "post-NYE outage"
     return "—"
@@ -317,10 +330,45 @@ def fig_weekend_day_bands(df):
     plt.close(fig)
     return counts
 
+def _spread_x(targets, gap, lo=0.10, hi=0.90):
+    """Nudge sorted label x-positions (axes fraction) apart to a minimum gap, in
+    bounds, preserving order — keeps leader labels from overlapping each other."""
+    xs = [min(max(t, lo), hi) for t in targets]
+    for k in range(1, len(xs)):                         # left→right: push right
+        if xs[k] - xs[k - 1] < gap:
+            xs[k] = xs[k - 1] + gap
+    if xs and xs[-1] > hi:                              # overflow: pull left from the right
+        xs[-1] = hi
+        for k in range(len(xs) - 2, -1, -1):
+            if xs[k + 1] - xs[k] < gap:
+                xs[k] = xs[k + 1] - gap
+    return xs
+
+def _annotate_days(a, tod, M, med, idxs, dates):
+    """Write+point at specific trajectories: a boxed date·holiday label in the top or
+    bottom margin (per whether the curve runs above/below the median at its most
+    distinctive point), with a thin leader to that point. No restyling of the lines."""
+    items = []
+    for i in idxs:
+        xi = int(np.argmax(np.abs(M[i] - med)))         # most distinctive moment of the day
+        items.append(dict(i=i, xi=xi, up=M[i][xi] >= med[xi],
+                          label=f"{pd.Timestamp(dates[i]).strftime('%-d %b')} · {_holiday_tag(dates[i])}"))
+    for up, yf, va in [(True, 0.965, "top"), (False, 0.035, "bottom")]:
+        grp = sorted([it for it in items if it["up"] == up], key=lambda it: it["xi"])
+        xs = _spread_x([tod[it["xi"]] / 24.0 for it in grp], gap=0.26)
+        for it, xf in zip(grp, xs):
+            a.annotate(it["label"], xy=(tod[it["xi"]], M[it["i"]][it["xi"]]), xycoords="data",
+                       xytext=(xf, yf), textcoords=a.transAxes, ha="center", va=va,
+                       fontsize=6.2, color="#222",
+                       bbox=dict(boxstyle="round,pad=0.25", fc="white", ec="#999", alpha=0.92),
+                       arrowprops=dict(arrowstyle="-", lw=0.7, color="#666", alpha=0.85,
+                                       shrinkA=2, shrinkB=3))
+
 def fig_weekend_day_spaghetti(df):
     """Companion to fig 14 with the bands and median stripped out: every Friday/
-    Saturday full-day trajectory, all kept, coloured by month — the raw curve set,
-    with the band-depth outlier days emphasised and labelled (holiday status)."""
+    Saturday full-day trajectory, all kept and drawn identically, coloured by month —
+    the raw curve set, with the band-depth outliers (+ flagged extras) written and
+    pointed at."""
     tod = np.arange(SLOTS) / 12.0
     cmap = _month_cmap(); mnorm = Normalize(1, 12)
     fig, ax = plt.subplots(1, 2, figsize=(13, 5.2), sharey=True)
@@ -330,22 +378,16 @@ def fig_weekend_day_spaghetti(df):
         depth = _mbd(M)
         order = np.argsort(-depth)
         k90 = max(2, int(np.ceil(0.90 * len(depth))))
-        outs = order[k90:]                              # band-depth outlier days
-        outs = outs[np.argsort(dates[outs])]            # chronological for the legend
-        # ALL trajectories: thin lines kept very transparent so dense overlap reads as
-        # density rather than whichever curve happens to be drawn last (no z-order hack)
+        med = M[order[0]]
+        # every trajectory drawn the SAME: thin, very transparent, so dense overlap
+        # reads as density rather than whichever curve happens to be drawn last
         for i in range(len(M)):
-            if i in set(outs.tolist()):
-                continue
             a.plot(tod, M[i], color=cmap(mnorm(months[i])), lw=0.5, alpha=0.22, zorder=1)
-        # outlier days: same month colour, bold with a white halo so they lift cleanly
-        # off the faint mass; a small legend names each with its date + holiday status
-        for i in outs:
-            a.plot(tod, M[i], color=cmap(mnorm(months[i])), lw=1.6, alpha=0.97, zorder=4,
-                   path_effects=[pe.Stroke(linewidth=3.0, foreground="white"), pe.Normal()],
-                   label=f"{pd.Timestamp(dates[i]).strftime('%-d %b %Y')} · {_holiday_tag(dates[i])}")
-        a.legend(loc="upper left", fontsize=6.6, framealpha=0.9,
-                 title=f"band-depth outliers ({len(outs)})", title_fontsize=6.6)
+        # flag the band-depth outliers plus any extra context days present on this panel
+        flag = list(order[k90:])
+        flag += [k for k, dd in enumerate(dates)
+                 if pd.Timestamp(dd).strftime("%Y-%m-%d") in EXTRA_ANNOTATE and k not in flag]
+        _annotate_days(a, tod, M, med, flag, dates)
         a.set_title(f"{name} — all {len(M)} full days"); a.set_xlim(0, 24)
         a.set_xticks(range(0, 25, 3)); a.set_xlabel("hour of day (Berlin local)")
     ax[0].set_ylabel("PKW / 5 min")

@@ -151,21 +151,23 @@ raw trajectory set, coloured by month — is below. Lines are held very transpar
 dense overlap reads as *density* rather than whichever day happens to be drawn last:
 
 ![weekend day trajectories](figures/15_weekend_day_trajectories.png)
-*All 33 Fri / 35 Sat full days, no bands, no median, one line per real day, coloured
-by month. The **band-depth outliers** (the days fig 14 drops) are picked out **bold
-with a white halo and named in the legend, tagged by holiday status**. The seasonal
-fan-out is clearest in the evening hours; the overnight troughs and the absence of an
-08:00 commute spike are common to every day regardless of month.*
+*All 33 Fri / 35 Sat full days, no bands, no median — every day drawn identically
+(thin, transparent), coloured by month. The **band-depth outliers** (the days fig 14
+drops), plus the **Ascension bridge Friday 19 May**, are **written in the margin and
+pointed at with a leader**, each tagged by holiday status. The seasonal fan-out is
+clearest in the evening hours; the overnight troughs and the absence of an 08:00
+commute spike are common to every day regardless of month.*
 
-**The outliers are interpretable, and the holidays line up.** Of the six flagged days,
-the two genuinely *low* ones are the **Easter long weekend** — **Good Friday, 07 Apr
-2023** (a Berlin public holiday; the street runs Sunday-quiet) and the **Holy Saturday
-beside it, 08 Apr 2023**. The high-side outliers are all the **first Fri/Sat after the
-sensor woke from its 10.9-day Christmas/New-Year outage** (05/06/12 Jan 2024) —
-return-to-work weeks running hot against the winter norm. The remaining one, **20 May
-2023 (Sat)**, is an ordinary quiet Saturday, no holiday. Worth stating explicitly:
-**Christmas (25–26 Dec) and New Year (1 Jan) cannot appear as outliers at all** —
-both fall *inside* the sensor outage, so no trajectory exists for them.
+**The outliers are interpretable, and the holidays line up.** The genuinely *low*
+days are all **holiday-affected**: **Good Friday, 07 Apr 2023** (a Berlin public
+holiday; the street runs Sunday-quiet), the **Holy Saturday beside it, 08 Apr 2023**
+(Easter weekend), and the **Ascension long weekend** — Ascension fell on **Thu 18 May
+2023**, making **Fri 19 May** a classic *Brückentag* (bridge day) and **Sat 20 May** a
+long-weekend Saturday, both running quiet. The high-side outliers are the **first
+Fri/Sat after the sensor woke from its 10.9-day Christmas/New-Year outage** (05/06/12
+Jan 2024) — return-to-work weeks running hot against the winter norm. Worth stating
+explicitly: **Christmas (25–26 Dec) and New Year (1 Jan) cannot appear as outliers at
+all** — both fall *inside* the sensor outage, so no trajectory exists for them.
 
 ## Statistical view
 
