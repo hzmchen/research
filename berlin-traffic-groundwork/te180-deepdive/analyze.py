@@ -402,6 +402,37 @@ def fig_weekend_day_spaghetti(df):
     fig.savefig(f"{FIG}/15_weekend_day_trajectories.png", bbox_inches="tight")
     plt.close(fig)
 
+def fig_weekend_day_monthly_mean(df):
+    """Final view: one line per calendar month = the pointwise mean across that
+    month's Fri (or Sat) days. Same month colour scale, opaque lines, no annotation —
+    the seasonal drift distilled to twelve clean curves."""
+    tod = np.arange(SLOTS) / 12.0
+    cmap = _month_cmap(); mnorm = Normalize(1, 12)
+    fig, ax = plt.subplots(1, 2, figsize=(13, 5.2), sharey=True)
+    for a, (dow, name) in zip(ax, [(4, "Friday"), (5, "Saturday")]):
+        dates, M = _day_matrix(df, dow)
+        months = pd.DatetimeIndex(dates).month.values
+        ndays = 0
+        for m in range(1, 13):
+            sel = months == m
+            if not sel.any():
+                continue
+            ndays += int(sel.sum())
+            a.plot(tod, M[sel].mean(axis=0), color=cmap(mnorm(m)), lw=1.9, alpha=0.9, zorder=2)
+        a.set_title(f"{name} — monthly mean of {ndays} days"); a.set_xlim(0, 24)
+        a.set_xticks(range(0, 25, 3)); a.set_xlabel("hour of day (Berlin local)")
+    ax[0].set_ylabel("PKW / 5 min")
+    sm = cm.ScalarMappable(norm=mnorm, cmap=cmap); sm.set_array([])
+    cb = fig.colorbar(sm, ax=ax, fraction=0.025, pad=0.01)
+    cb.set_ticks(range(1, 13))
+    cb.set_ticklabels(["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"])
+    cb.set_label("month")
+    fig.suptitle(f"{TITLE} — Friday vs Saturday full-day car count, "
+                 f"monthly pointwise mean by month", y=1.01)
+    fig.savefig(f"{FIG}/16_weekend_day_monthly_mean.png", bbox_inches="tight")
+    plt.close(fig)
+
 # ------------------------------------------------------------------ statistics
 def fig_distributions(df):
     d = df[df.present]
@@ -529,6 +560,7 @@ def main():
     fig_day_pattern_by_month(dd); fig_day_pattern_by_week(dd); fig_day_pattern_by_dow(dd)
     wk = fig_weekend_day_bands(df)
     fig_weekend_day_spaghetti(df)
+    fig_weekend_day_monthly_mean(df)
     print("artefact count-spikes scrubbed:", df.attrs.get("artefacts_scrubbed"))
     print("Fri/Sat band membership:", wk)
     fig_distributions(df); fig_boxplots(df); fig_fundamental(df)

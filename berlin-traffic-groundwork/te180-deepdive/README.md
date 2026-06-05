@@ -169,6 +169,16 @@ Jan 2024) — return-to-work weeks running hot against the winter norm. Worth st
 explicitly: **Christmas (25–26 Dec) and New Year (1 Jan) cannot appear as outliers at
 all** — both fall *inside* the sensor outage, so no trajectory exists for them.
 
+Finally, the seasonal drift distilled to **one opaque line per calendar month** — the
+pointwise mean across that month's Fri (or Sat) days:
+
+![weekend day monthly mean](figures/16_weekend_day_monthly_mean.png)
+*Monthly pointwise mean by month (same colour scale). Curves stay jagged because each
+month averages only ~2–5 weekend days at 5-min resolution, but the **seasonal layering
+is clear**: warmer-month (yellow) curves sit above the cooler-month (blue) ones through
+the long afternoons and evenings, while the overnight troughs and the broad weekend
+shape are shared across all twelve.*
+
 ## Statistical view
 
 ![distributions](figures/06_distributions.png)
@@ -232,7 +242,7 @@ missing before every figure/statistic, which is why the count max above is **100
 ```bash
 cd berlin-traffic-groundwork/te180-deepdive
 python3 fetch.py        # idempotent + gentle: caches data/te180_pkw_5min.csv (skips if present)
-python3 analyze.py      # deterministic: regenerates figures/01-15 + data/{outages,summary}.json
+python3 analyze.py      # deterministic: regenerates figures/01-16 + data/{outages,summary}.json
 python3 map.py          # static location map (figures/00_location_map.png; one tile fetch)
 ```
 
