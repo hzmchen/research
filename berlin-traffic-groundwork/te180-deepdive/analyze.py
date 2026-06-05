@@ -418,7 +418,7 @@ def fig_weekend_day_monthly_mean(df):
             if not sel.any():
                 continue
             ndays += int(sel.sum())
-            a.plot(tod, M[sel].mean(axis=0), color=cmap(mnorm(m)), lw=1.9, alpha=0.9, zorder=2)
+            a.plot(tod, M[sel].mean(axis=0), color=cmap(mnorm(m)), lw=1.3, alpha=0.45, zorder=2)
         a.set_title(f"{name} — monthly mean of {ndays} days"); a.set_xlim(0, 24)
         a.set_xticks(range(0, 25, 3)); a.set_xlabel("hour of day (Berlin local)")
     ax[0].set_ylabel("PKW / 5 min")
