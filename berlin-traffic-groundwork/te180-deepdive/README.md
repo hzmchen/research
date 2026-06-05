@@ -121,30 +121,33 @@ sitting just above Sunday**.*
 Where the decomposition above plots *group means*, this view keeps the **individual
 days intact**. Each faint line is **one real Friday (or Saturday)** — that specific
 date's complete 24-hour car-count profile at native 5-min resolution (Berlin local),
-an **actual trajectory, not a per-bin reshuffle**. Lines are tinted on a gentle
-**seasonal ramp (blue = winter → yellow = summer)** keyed to a smooth cosine of the
-day-of-year, so the seasonal stratification of the whole day is legible at a glance.
+an **actual trajectory, not a per-bin reshuffle**. Lines are tinted by **calendar
+month** on a gentle cyclic ramp (**blue = winter → yellow = summer → blue**), so the
+seasonal stratification of the whole day is legible at a glance.
 
 ![weekend day trajectory bands](figures/14_weekend_day_trajectory_bands.png)
-*Fri (left) / Sat (right), 33 / 35 full days with ≥95 % slot coverage. Over the real
-trajectories sit two **functional credible bands** and a **median day**, all built
-from **Modified Band Depth** (MBD; López-Pintado & Romo 2009 — the engine of the
-functional boxplot). MBD ranks each whole curve by how often it lies inside the band
-spanned by pairs of other days; the **central 68 % / 90 %** envelopes are then the
-pointwise min–max of the deepest 68 % / 90 % of days (darker-narrow vs lighter-wide
-grey), so the band literally **contains that share of entire days** rather than being
-a pointwise quantile. The bold white-haloed line is the **functional median = the
-single deepest real day** (a genuine trajectory, not a synthetic average).*
+*Fri (left) / Sat (right); after the ≥95 % slot-coverage filter, **only the days
+inside the 90 % band are drawn** (30 of 33 Fri, 32 of 35 Sat — the ~10 % depth
+outliers are dropped). Over the real trajectories sit two **functional credible
+bands** and a **median day**, all built from **Modified Band Depth** (MBD;
+López-Pintado & Romo 2009 — the engine of the functional boxplot). MBD ranks each
+whole curve by how often it lies inside the band spanned by pairs of other days; the
+**central 68 % / 90 %** envelopes are then the pointwise min–max of the deepest 68 %
+/ 90 % of days (darker-narrow vs lighter-wide grey), so the band literally
+**contains that share of entire days** rather than being a pointwise quantile. The
+bold near-black line is the **functional median = the single deepest real day** (a
+genuine trajectory, not a synthetic average).*
 
 Reading it: both nights share the weekday→weekend signature — **no sharp 08:00
 commute spike**, a slow build to a broad afternoon/evening plateau, and a fat late
-band. **Friday** carries the heavier, longer-tailed evening (the lone real day
-spiking to ~175 PKW/5 min near 21:00 falls *outside* the 90 % band — exactly the
-extreme the band is meant to exclude); **Saturday** is gentler and earlier-tapering.
-The 90 %/68 % gap is widest in the afternoon/evening (day-to-day variance peaks when
-the street is busy) and pinches tight in the **04:00–05:00 trough**, where every
-weekend looks alike. Seasonal colour shows summer (yellow) days running a touch
-higher through the long evenings than winter (blue) ones.
+band. **Friday** carries the heavier, longer-tailed evening; **Saturday** is gentler
+and earlier-tapering. The 90 %/68 % gap is widest in the afternoon/evening (day-to-day
+variance peaks when the street is busy) and pinches tight in the **04:00–05:00
+trough**, where every weekend looks alike. Note that depth is a *whole-curve* measure:
+a day that is typical all day bar one 5-min spike stays "deep" and is kept, so the
+90 % envelope can still bulge to contain a brief excursion (e.g. the ~21:00 Friday
+peak). The month colour shows summer (yellow) days running a touch higher through the
+long evenings than winter (blue) ones.
 
 ## Statistical view
 

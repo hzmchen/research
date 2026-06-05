@@ -19,7 +19,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.cm as cm
-import matplotlib.patheffects as pe
 from matplotlib.colors import Normalize, LinearSegmentedColormap
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -204,15 +203,12 @@ def fig_day_pattern_by_dow(d):
 # deepest real day (again, a genuine trajectory, not a pointwise synthetic curve).
 SLOTS = 288  # 5-min slots in a (non-DST-change) day; Fri/Sat are always 24 h
 
-def _season_cmap():
-    # winter → pale → summer; soft, low-saturation so many overlaid lines stay calm
-    return LinearSegmentedColormap.from_list(
-        "winter_summer", ["#2f5c9e", "#7fa8c9", "#d8d3c0", "#ecc94b", "#f2b705"])
-
-def _season_phase(dates):
-    """Smooth seasonality in [-1, 1]: +1 at midsummer (~21 Jun, doy 172), -1 mid-winter."""
-    doy = pd.DatetimeIndex(dates).dayofyear.values
-    return np.cos(2 * np.pi * (doy - 172) / 365.25)
+def _month_cmap():
+    # cyclic blue(winter) → yellow(summer) → blue: keeps summer warm / winter cool
+    # while the colour SCALE is calendar month (Jan…Dec), not an abstract season axis
+    return LinearSegmentedColormap.from_list("month_temp", [
+        "#2f5c9e", "#5f86b8", "#9fbdcf", "#d8d3c0", "#ecc94b", "#f2b705",
+        "#ecc94b", "#d8d3c0", "#9fbdcf", "#5f86b8", "#2f5c9e"])
 
 def _day_matrix(df, dow):
     """(dates, M) for one weekday: M[i] is day i's 288-pt 5-min count trajectory.
@@ -242,44 +238,44 @@ def _mbd(M):
         acc += contained / npairs
     return acc / p
 
-def _central_envelope(M, depth, frac):
-    """Pointwise [min,max] envelope of the deepest `frac` of curves (functional band)."""
-    k = max(2, int(np.ceil(frac * len(depth))))
-    sub = M[np.argsort(-depth)[:k]]
-    return sub.min(0), sub.max(0)
-
 def fig_weekend_day_bands(df):
     tod = np.arange(SLOTS) / 12.0                       # hour of day, 0..24
-    cmap = _season_cmap()
+    cmap = _month_cmap(); mnorm = Normalize(1, 12)
     fig, ax = plt.subplots(1, 2, figsize=(13, 5.2), sharey=True)
     counts = {}
     for a, (dow, name) in zip(ax, [(4, "Friday"), (5, "Saturday")]):
         dates, M = _day_matrix(df, dow)
-        counts[name] = len(M)
         depth = _mbd(M)
-        lo90, hi90 = _central_envelope(M, depth, 0.90)
-        lo68, hi68 = _central_envelope(M, depth, 0.68)
-        med = M[int(np.argmax(depth))]                  # functional median = deepest real day
-        phase = _season_phase(dates)
-        # the actual day trajectories, faint & seasonal-coloured
-        for i in range(len(M)):
-            a.plot(tod, M[i], color=cmap((phase[i] + 1) / 2), lw=0.6, alpha=0.32, zorder=1)
+        order = np.argsort(-depth)
+        k90 = max(2, int(np.ceil(0.90 * len(depth))))   # deepest 90 % = inside the 90 % band
+        k68 = max(2, int(np.ceil(0.68 * len(depth))))
+        in90 = order[:k90]
+        counts[name] = {"kept_90pct": int(k90), "dropped_outliers": int(len(depth) - k90)}
+        lo90, hi90 = M[in90].min(0), M[in90].max(0)
+        lo68, hi68 = M[order[:k68]].min(0), M[order[:k68]].max(0)
+        med = M[order[0]]                               # functional median = deepest real day
+        months = pd.DatetimeIndex(dates).month.values
+        # only the trajectories INSIDE the 90 % band — the ~10 % outliers are dropped
+        for i in in90:
+            a.plot(tod, M[i], color=cmap(mnorm(months[i])), lw=0.6, alpha=0.42, zorder=1)
         # nested functional bands: 90 % wider & lighter, 68 % narrower & darker
         a.fill_between(tod, lo90, hi90, color="#3a3a3a", alpha=0.12, zorder=2, lw=0,
                        label="central 90 % of days")
         a.fill_between(tod, lo68, hi68, color="#3a3a3a", alpha=0.22, zorder=3, lw=0,
                        label="central 68 % of days")
-        # bold standout median, white halo so it reads over every line and band
-        a.plot(tod, med, color="#111111", lw=2.6, zorder=5, label="median day",
-               path_effects=[pe.Stroke(linewidth=4.5, foreground="white"), pe.Normal()])
-        a.set_title(f"{name} — {len(M)} full days"); a.set_xlim(0, 24)
+        # bold near-black median line
+        a.plot(tod, med, color="#111111", lw=2.4, zorder=5, label="median day")
+        a.set_title(f"{name} — {k90} days inside 90 % band "
+                    f"({len(depth) - k90} outliers dropped)"); a.set_xlim(0, 24)
         a.set_xticks(range(0, 25, 3)); a.set_xlabel("hour of day (Berlin local)")
         a.legend(loc="upper left", fontsize=7, framealpha=0.85)
     ax[0].set_ylabel("PKW / 5 min")
-    sm = cm.ScalarMappable(norm=Normalize(-1, 1), cmap=cmap); sm.set_array([])
+    sm = cm.ScalarMappable(norm=mnorm, cmap=cmap); sm.set_array([])
     cb = fig.colorbar(sm, ax=ax, fraction=0.025, pad=0.01)
-    cb.set_ticks([-1, 0, 1]); cb.set_ticklabels(["winter", "spring / autumn", "summer"])
-    cb.set_label("season of the day")
+    cb.set_ticks(range(1, 13))
+    cb.set_ticklabels(["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"])
+    cb.set_label("month of the day")
     fig.suptitle(f"{TITLE} — Friday vs Saturday full-day car-count trajectories "
                  f"(functional 68 %/90 % bands + median day)", y=1.01)
     fig.savefig(f"{FIG}/14_weekend_day_trajectory_bands.png", bbox_inches="tight")
