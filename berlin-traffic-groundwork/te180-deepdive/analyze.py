@@ -40,6 +40,15 @@ def load():
     full = pd.date_range(df.index.min(), df.index.max(), freq="5min", tz="UTC")
     df = df.reindex(full)
     df.index.name = "ts"
+    # --- artefact scrub: a handful of 5-min slots report an implausible count spike
+    # (>110 PKW, ~5x the local level) while speed simultaneously collapses to a crawl
+    # (~3-17 km/h). High flow at crawl speed violates the speed-flow relation and the
+    # excess is not conserved against neighbouring slots -> sensor miscount, not
+    # traffic. Drop those readings to missing so no figure or statistic uses them.
+    COUNT_CEILING = 110          # clean body tops out ~100 (p99.99 = 97); next jump is 122
+    art = df["count"] > COUNT_CEILING
+    df.loc[art, ["count", "speed_kmh"]] = np.nan
+    df.attrs["artefacts_scrubbed"] = int(art.sum())
     df["present"] = df["count"].notna()
     # derive Berlin-local fields for interpretable time-of-day / weekday patterns
     local = df.index.tz_convert("Europe/Berlin")
@@ -282,6 +291,31 @@ def fig_weekend_day_bands(df):
     plt.close(fig)
     return counts
 
+def fig_weekend_day_spaghetti(df):
+    """Companion to fig 14 with the bands and median stripped out: every Friday/
+    Saturday full-day trajectory, all kept, coloured by month — the raw curve set."""
+    tod = np.arange(SLOTS) / 12.0
+    cmap = _month_cmap(); mnorm = Normalize(1, 12)
+    fig, ax = plt.subplots(1, 2, figsize=(13, 5.2), sharey=True)
+    for a, (dow, name) in zip(ax, [(4, "Friday"), (5, "Saturday")]):
+        dates, M = _day_matrix(df, dow)
+        months = pd.DatetimeIndex(dates).month.values
+        for i in range(len(M)):                         # ALL trajectories, none dropped
+            a.plot(tod, M[i], color=cmap(mnorm(months[i])), lw=0.6, alpha=0.55, zorder=1)
+        a.set_title(f"{name} — all {len(M)} full days"); a.set_xlim(0, 24)
+        a.set_xticks(range(0, 25, 3)); a.set_xlabel("hour of day (Berlin local)")
+    ax[0].set_ylabel("PKW / 5 min")
+    sm = cm.ScalarMappable(norm=mnorm, cmap=cmap); sm.set_array([])
+    cb = fig.colorbar(sm, ax=ax, fraction=0.025, pad=0.01)
+    cb.set_ticks(range(1, 13))
+    cb.set_ticklabels(["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"])
+    cb.set_label("month of the day")
+    fig.suptitle(f"{TITLE} — Friday vs Saturday full-day car-count trajectories "
+                 f"(all days, coloured by month)", y=1.01)
+    fig.savefig(f"{FIG}/15_weekend_day_trajectories.png", bbox_inches="tight")
+    plt.close(fig)
+
 # ------------------------------------------------------------------ statistics
 def fig_distributions(df):
     d = df[df.present]
@@ -408,7 +442,9 @@ def main():
     dd = _day_fields(df)
     fig_day_pattern_by_month(dd); fig_day_pattern_by_week(dd); fig_day_pattern_by_dow(dd)
     wk = fig_weekend_day_bands(df)
-    print("Fri/Sat full days kept (≥95% coverage):", wk)
+    fig_weekend_day_spaghetti(df)
+    print("artefact count-spikes scrubbed:", df.attrs.get("artefacts_scrubbed"))
+    print("Fri/Sat band membership:", wk)
     fig_distributions(df); fig_boxplots(df); fig_fundamental(df)
     rep, out_rows = analyze_breaks(df)
     fig_daily_coverage(df, out_rows)

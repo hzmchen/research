@@ -51,8 +51,8 @@ Two things stand out against TC073:
 | Location | Torstraße, Tucholskystr.→Borsigstr., Haus 199, **Richtung West** (`mq_id15` 100201010015336) |
 | Datastreams | count `Anzahl PKW 5 Minuten -  Messquerschnitt` (id **8725**); speed `Geschwindigkeit PKW 5 Minuten -  Messquerschnitt` (id **8731**) |
 | Stream life | 2023-02-22 → ~2025-04-13, but **dense only in year 1**; we pull **2023-02-22 12:00 → 2024-01-13 01:35 UTC** |
-| Grid | 93,476 five-minute slots · **82,200 present (87.9 %)** · 11,276 missing · 46 present-but-zero (all scattered, no ≥30-min run) |
-| Count (PKW/5 min) | median 34 · mean 33.4 · p95 61 · max 172 |
+| Grid | 93,476 five-minute slots · **82,195 present (87.9 %)** · 11,281 missing · 46 present-but-zero (all scattered, no ≥30-min run) |
+| Count (PKW/5 min) | median 34 · mean 33.4 · p95 61 · max 100 (after artefact scrub; see below) |
 | Speed (km/h) | median 36.4 · mean 36.3 · p05 27.0 · p95 45.0 |
 
 All times in the data are **UTC**; diurnal/weekday analysis is done in **Europe/Berlin
@@ -143,11 +143,17 @@ commute spike**, a slow build to a broad afternoon/evening plateau, and a fat la
 band. **Friday** carries the heavier, longer-tailed evening; **Saturday** is gentler
 and earlier-tapering. The 90 %/68 % gap is widest in the afternoon/evening (day-to-day
 variance peaks when the street is busy) and pinches tight in the **04:00–05:00
-trough**, where every weekend looks alike. Note that depth is a *whole-curve* measure:
-a day that is typical all day bar one 5-min spike stays "deep" and is kept, so the
-90 % envelope can still bulge to contain a brief excursion (e.g. the ~21:00 Friday
-peak). The month colour shows summer (yellow) days running a touch higher through the
-long evenings than winter (blue) ones.
+trough**, where every weekend looks alike. The month colour shows summer (yellow)
+days running a touch higher through the long evenings than winter (blue) ones.
+
+The same picture with the **bands and median stripped out and every day kept** — the
+raw trajectory set, coloured by month — is below. It makes the full day-to-day spread
+visible (the band figure is just this with a robust summary laid over it):
+
+![weekend day trajectories](figures/15_weekend_day_trajectories.png)
+*All 33 Fri / 35 Sat full days, no bands, no median, one line per real day, coloured
+by month. The seasonal fan-out is clearest in the evening hours; the overnight troughs
+and the absence of an 08:00 commute spike are common to every day regardless of month.*
 
 ## Statistical view
 
@@ -193,15 +199,26 @@ sit, as expected, in the deep overnight hours.
 A useful cross-check, exactly as in the TC073 study: across the whole sample
 **`speed > 0` while `count = 0` never happens (0 cases)** — the count and speed
 streams are mutually consistent. Combined with the absence of any count-doubling
-step, **TE180's year is cleaner than TC073's**: the only data-quality issue is
-*availability* (outages + the post-Jan-2024 death), not *validity*.
+step, **TE180's year is cleaner than TC073's**: aside from a tiny artefact scrub
+(next paragraph), the data-quality issue is *availability* (outages + the
+post-Jan-2024 death), not *validity*.
+
+**Count-spike artefacts (scrubbed).** Five isolated 5-min slots report an
+implausible count spike (>110 PKW, ~5× the local level) while speed *simultaneously*
+collapses to a crawl (~3–17 km/h) — e.g. `2023-07-28 21:05–21:10` (172, 166 PKW at
+~16 km/h) and `2023-09-24 08:10–08:35` (122–162 PKW at 2.6–9 km/h). High flow at
+crawl speed violates the speed–flow relation, and the ~300-car excess is not
+conserved against neighbouring slots, so these are **sensor miscounts, not traffic**.
+`analyze.py` drops any count `> 110` (the clean body tops out ~100; p99.99 = 97) to
+missing before every figure/statistic, which is why the count max above is **100, not
+172**. This is the *only* value-validity fix the year needs.
 
 ## Reproduce
 
 ```bash
 cd berlin-traffic-groundwork/te180-deepdive
 python3 fetch.py        # idempotent + gentle: caches data/te180_pkw_5min.csv (skips if present)
-python3 analyze.py      # deterministic: regenerates figures/01-14 + data/{outages,summary}.json
+python3 analyze.py      # deterministic: regenerates figures/01-15 + data/{outages,summary}.json
 python3 map.py          # static location map (figures/00_location_map.png; one tile fetch)
 ```
 
