@@ -136,7 +136,8 @@ whole curve by how often it lies inside the band spanned by pairs of other days;
 / 90 % of days (darker-narrow vs lighter-wide grey), so the band literally
 **contains that share of entire days** rather than being a pointwise quantile. The
 bold near-black line is the **functional median = the single deepest real day** (a
-genuine trajectory, not a synthetic average).*
+genuine trajectory, not a synthetic average). Each panel's box lists the **dropped
+outlier days and whether they fell on a holiday** (see below).*
 
 Reading it: both nights share the weekday→weekend signature — **no sharp 08:00
 commute spike**, a slow build to a broad afternoon/evening plateau, and a fat late
@@ -145,6 +146,16 @@ and earlier-tapering. The 90 %/68 % gap is widest in the afternoon/evening (day-
 variance peaks when the street is busy) and pinches tight in the **04:00–05:00
 trough**, where every weekend looks alike. The month colour shows summer (yellow)
 days running a touch higher through the long evenings than winter (blue) ones.
+
+**The outliers are interpretable, and the holidays line up.** Of the six dropped days,
+the two genuinely *low* ones are the **Easter long weekend** — **Good Friday, 07 Apr
+2023** (a Berlin public holiday; the street runs Sunday-quiet) and the **Holy Saturday
+beside it, 08 Apr 2023**. The high-side outliers are all the **first Fri/Sat after the
+sensor woke from its 10.9-day Christmas/New-Year outage** (05/06/12 Jan 2024) —
+return-to-work weeks running hot against the winter norm. The remaining one, **20 May
+2023 (Sat)**, is an ordinary quiet Saturday, no holiday. Worth stating explicitly:
+**Christmas (25–26 Dec) and New Year (1 Jan) cannot appear as outliers at all** —
+both fall *inside* the sensor outage, so no trajectory exists for them.
 
 The same picture with the **bands and median stripped out and every day kept** — the
 raw trajectory set, coloured by month — is below. It makes the full day-to-day spread
