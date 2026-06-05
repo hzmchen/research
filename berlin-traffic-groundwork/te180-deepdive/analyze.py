@@ -19,7 +19,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.cm as cm
-from matplotlib.colors import Normalize
+import matplotlib.patheffects as pe
+from matplotlib.colors import Normalize, LinearSegmentedColormap
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "data", "te180_pkw_5min.csv")
@@ -192,6 +193,99 @@ def fig_day_pattern_by_dow(d):
         a.legend(title="day", fontsize=7)
     fig.tight_layout(); fig.savefig(f"{FIG}/13_day_pattern_by_dow.png"); plt.close(fig)
 
+# --------------------------------- Fri/Sat full-day trajectory bands (function.)
+# Two panels (Friday, Saturday). Every faint line is ONE real day: that specific
+# date's full 24 h car-count profile at native 5-min resolution (Berlin local) —
+# an actual trajectory, not a per-bin reshuffle. Lines are coloured on a gentle
+# seasonal blue(winter)→yellow(summer) ramp. Over them sit nested *functional*
+# bands built from Modified Band Depth (MBD; López-Pintado & Romo 2009, the basis
+# of the functional boxplot): the envelopes literally contain the deepest 68 % and
+# 90 % of WHOLE days, and the bold line is the functional median = the single
+# deepest real day (again, a genuine trajectory, not a pointwise synthetic curve).
+SLOTS = 288  # 5-min slots in a (non-DST-change) day; Fri/Sat are always 24 h
+
+def _season_cmap():
+    # winter → pale → summer; soft, low-saturation so many overlaid lines stay calm
+    return LinearSegmentedColormap.from_list(
+        "winter_summer", ["#2f5c9e", "#7fa8c9", "#d8d3c0", "#ecc94b", "#f2b705"])
+
+def _season_phase(dates):
+    """Smooth seasonality in [-1, 1]: +1 at midsummer (~21 Jun, doy 172), -1 mid-winter."""
+    doy = pd.DatetimeIndex(dates).dayofyear.values
+    return np.cos(2 * np.pi * (doy - 172) / 365.25)
+
+def _day_matrix(df, dow):
+    """(dates, M) for one weekday: M[i] is day i's 288-pt 5-min count trajectory.
+    Keep days with ≥95 % of slots present; linearly interpolate the few interior gaps
+    so every retained curve is complete (band depth needs equal-length curves)."""
+    ln = df["local"].dt.tz_localize(None)               # naive Berlin wall-clock
+    d = df.assign(day=ln.dt.normalize(), slot=ln.dt.hour * 12 + ln.dt.minute // 5)
+    d = d[d["dow"] == dow]
+    piv = d.pivot_table(index="day", columns="slot", values="count", aggfunc="mean")
+    piv = piv.reindex(columns=range(SLOTS))
+    piv = piv[piv.notna().sum(axis=1) >= int(0.95 * SLOTS)]
+    piv = piv.interpolate(axis=1, limit_direction="both")
+    return piv.index.to_numpy(), piv.to_numpy()
+
+def _mbd(M):
+    """Modified Band Depth (order J=2) of each row-curve of M (n×p).
+    Per time point, the share of curve pairs whose [min,max] brackets the curve,
+    averaged over time. Vectorised, tie-correct via strict below/above counts."""
+    n, p = M.shape
+    npairs = n * (n - 1) / 2
+    acc = np.zeros(n)
+    for t in range(p):
+        v = M[:, t]
+        below = (v[:, None] > v[None, :]).sum(1)        # # curves strictly below v_i
+        above = (v[:, None] < v[None, :]).sum(1)        # # curves strictly above v_i
+        contained = npairs - below * (below - 1) / 2 - above * (above - 1) / 2
+        acc += contained / npairs
+    return acc / p
+
+def _central_envelope(M, depth, frac):
+    """Pointwise [min,max] envelope of the deepest `frac` of curves (functional band)."""
+    k = max(2, int(np.ceil(frac * len(depth))))
+    sub = M[np.argsort(-depth)[:k]]
+    return sub.min(0), sub.max(0)
+
+def fig_weekend_day_bands(df):
+    tod = np.arange(SLOTS) / 12.0                       # hour of day, 0..24
+    cmap = _season_cmap()
+    fig, ax = plt.subplots(1, 2, figsize=(13, 5.2), sharey=True)
+    counts = {}
+    for a, (dow, name) in zip(ax, [(4, "Friday"), (5, "Saturday")]):
+        dates, M = _day_matrix(df, dow)
+        counts[name] = len(M)
+        depth = _mbd(M)
+        lo90, hi90 = _central_envelope(M, depth, 0.90)
+        lo68, hi68 = _central_envelope(M, depth, 0.68)
+        med = M[int(np.argmax(depth))]                  # functional median = deepest real day
+        phase = _season_phase(dates)
+        # the actual day trajectories, faint & seasonal-coloured
+        for i in range(len(M)):
+            a.plot(tod, M[i], color=cmap((phase[i] + 1) / 2), lw=0.6, alpha=0.32, zorder=1)
+        # nested functional bands: 90 % wider & lighter, 68 % narrower & darker
+        a.fill_between(tod, lo90, hi90, color="#3a3a3a", alpha=0.12, zorder=2, lw=0,
+                       label="central 90 % of days")
+        a.fill_between(tod, lo68, hi68, color="#3a3a3a", alpha=0.22, zorder=3, lw=0,
+                       label="central 68 % of days")
+        # bold standout median, white halo so it reads over every line and band
+        a.plot(tod, med, color="#111111", lw=2.6, zorder=5, label="median day",
+               path_effects=[pe.Stroke(linewidth=4.5, foreground="white"), pe.Normal()])
+        a.set_title(f"{name} — {len(M)} full days"); a.set_xlim(0, 24)
+        a.set_xticks(range(0, 25, 3)); a.set_xlabel("hour of day (Berlin local)")
+        a.legend(loc="upper left", fontsize=7, framealpha=0.85)
+    ax[0].set_ylabel("PKW / 5 min")
+    sm = cm.ScalarMappable(norm=Normalize(-1, 1), cmap=cmap); sm.set_array([])
+    cb = fig.colorbar(sm, ax=ax, fraction=0.025, pad=0.01)
+    cb.set_ticks([-1, 0, 1]); cb.set_ticklabels(["winter", "spring / autumn", "summer"])
+    cb.set_label("season of the day")
+    fig.suptitle(f"{TITLE} — Friday vs Saturday full-day car-count trajectories "
+                 f"(functional 68 %/90 % bands + median day)", y=1.01)
+    fig.savefig(f"{FIG}/14_weekend_day_trajectory_bands.png", bbox_inches="tight")
+    plt.close(fig)
+    return counts
+
 # ------------------------------------------------------------------ statistics
 def fig_distributions(df):
     d = df[df.present]
@@ -317,6 +411,8 @@ def main():
     fig_week(df); fig_tod(df); fig_weekday(df); fig_heatmap(df)
     dd = _day_fields(df)
     fig_day_pattern_by_month(dd); fig_day_pattern_by_week(dd); fig_day_pattern_by_dow(dd)
+    wk = fig_weekend_day_bands(df)
+    print("Fri/Sat full days kept (≥95% coverage):", wk)
     fig_distributions(df); fig_boxplots(df); fig_fundamental(df)
     rep, out_rows = analyze_breaks(df)
     fig_daily_coverage(df, out_rows)
