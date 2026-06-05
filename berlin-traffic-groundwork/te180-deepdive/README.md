@@ -173,11 +173,12 @@ Finally, the seasonal drift distilled to **one opaque line per calendar month** 
 pointwise mean across that month's Fri (or Sat) days:
 
 ![weekend day monthly mean](figures/16_weekend_day_monthly_mean.png)
-*Monthly pointwise mean by month (same colour scale). Curves stay jagged because each
-month averages only ~2–5 weekend days at 5-min resolution, but the **seasonal layering
-is clear**: warmer-month (yellow) curves sit above the cooler-month (blue) ones through
-the long afternoons and evenings, while the overnight troughs and the broad weekend
-shape are shared across all twelve.*
+*Monthly pointwise mean by month (same colour scale), **lightly smoothed with a 25-min
+centred rolling mean** to calm the 5-min noise — each month averages only ~2–5 weekend
+days, so the raw means are jagged; the smoothing keeps the morning peak but makes the
+twelve curves individually followable. The **seasonal layering is clear**: cooler-month
+(blue) curves run highest through the day while warmer-month (yellow) ones sit in the
+mid-band, with the overnight troughs and broad weekend shape shared across all twelve.*
 
 ## Statistical view
 

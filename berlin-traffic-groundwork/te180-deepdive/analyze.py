@@ -402,10 +402,18 @@ def fig_weekend_day_spaghetti(df):
     fig.savefig(f"{FIG}/15_weekend_day_trajectories.png", bbox_inches="tight")
     plt.close(fig)
 
+def _smooth(y, win=5):
+    """Light centred rolling mean (win 5-min slots; default 25 min), reflect-padded so
+    the day's endpoints aren't dragged. Just calms 5-min noise; peaks are preserved."""
+    if win <= 1:
+        return y
+    pad = win // 2
+    return np.convolve(np.pad(y, pad, mode="reflect"), np.ones(win) / win, mode="valid")
+
 def fig_weekend_day_monthly_mean(df):
-    """Final view: one line per calendar month = the pointwise mean across that
-    month's Fri (or Sat) days. Same month colour scale, opaque lines, no annotation —
-    the seasonal drift distilled to twelve clean curves."""
+    """Final view: one line per calendar month = the pointwise mean across that month's
+    Fri (or Sat) days, lightly smoothed (25-min rolling mean). Same month colour scale,
+    no annotation — the seasonal drift distilled to twelve clean curves."""
     tod = np.arange(SLOTS) / 12.0
     cmap = _month_cmap(); mnorm = Normalize(1, 12)
     fig, ax = plt.subplots(1, 2, figsize=(13, 5.2), sharey=True)
@@ -418,7 +426,8 @@ def fig_weekend_day_monthly_mean(df):
             if not sel.any():
                 continue
             ndays += int(sel.sum())
-            a.plot(tod, M[sel].mean(axis=0), color=cmap(mnorm(m)), lw=1.3, alpha=0.45, zorder=2)
+            a.plot(tod, _smooth(M[sel].mean(axis=0)), color=cmap(mnorm(m)),
+                   lw=1.4, alpha=0.5, zorder=2)
         a.set_title(f"{name} — monthly mean of {ndays} days"); a.set_xlim(0, 24)
         a.set_xticks(range(0, 25, 3)); a.set_xlabel("hour of day (Berlin local)")
     ax[0].set_ylabel("PKW / 5 min")
