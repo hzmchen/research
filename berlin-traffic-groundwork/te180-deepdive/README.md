@@ -136,8 +136,7 @@ whole curve by how often it lies inside the band spanned by pairs of other days;
 / 90 % of days (darker-narrow vs lighter-wide grey), so the band literally
 **contains that share of entire days** rather than being a pointwise quantile. The
 bold near-black line is the **functional median = the single deepest real day** (a
-genuine trajectory, not a synthetic average). Each panel's box lists the **dropped
-outlier days and whether they fell on a holiday** (see below).*
+genuine trajectory, not a synthetic average).*
 
 Reading it: both nights share the weekday→weekend signature — **no sharp 08:00
 commute spike**, a slow build to a broad afternoon/evening plateau, and a fat late
@@ -147,7 +146,18 @@ variance peaks when the street is busy) and pinches tight in the **04:00–05:00
 trough**, where every weekend looks alike. The month colour shows summer (yellow)
 days running a touch higher through the long evenings than winter (blue) ones.
 
-**The outliers are interpretable, and the holidays line up.** Of the six dropped days,
+The same picture with the **bands and median stripped out and every day kept** — the
+raw trajectory set, coloured by month — is below. Lines are held very transparent so
+dense overlap reads as *density* rather than whichever day happens to be drawn last:
+
+![weekend day trajectories](figures/15_weekend_day_trajectories.png)
+*All 33 Fri / 35 Sat full days, no bands, no median, one line per real day, coloured
+by month. The **band-depth outliers** (the days fig 14 drops) are picked out **bold
+with a white halo and named in the legend, tagged by holiday status**. The seasonal
+fan-out is clearest in the evening hours; the overnight troughs and the absence of an
+08:00 commute spike are common to every day regardless of month.*
+
+**The outliers are interpretable, and the holidays line up.** Of the six flagged days,
 the two genuinely *low* ones are the **Easter long weekend** — **Good Friday, 07 Apr
 2023** (a Berlin public holiday; the street runs Sunday-quiet) and the **Holy Saturday
 beside it, 08 Apr 2023**. The high-side outliers are all the **first Fri/Sat after the
@@ -156,15 +166,6 @@ return-to-work weeks running hot against the winter norm. The remaining one, **2
 2023 (Sat)**, is an ordinary quiet Saturday, no holiday. Worth stating explicitly:
 **Christmas (25–26 Dec) and New Year (1 Jan) cannot appear as outliers at all** —
 both fall *inside* the sensor outage, so no trajectory exists for them.
-
-The same picture with the **bands and median stripped out and every day kept** — the
-raw trajectory set, coloured by month — is below. It makes the full day-to-day spread
-visible (the band figure is just this with a robust summary laid over it):
-
-![weekend day trajectories](figures/15_weekend_day_trajectories.png)
-*All 33 Fri / 35 Sat full days, no bands, no median, one line per real day, coloured
-by month. The seasonal fan-out is clearest in the evening hours; the overnight troughs
-and the absence of an 08:00 commute spike are common to every day regardless of month.*
 
 ## Statistical view
 

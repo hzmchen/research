@@ -19,6 +19,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.cm as cm
+import matplotlib.patheffects as pe
 from matplotlib.colors import Normalize, LinearSegmentedColormap
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -275,7 +276,6 @@ def _mbd(M):
 def fig_weekend_day_bands(df):
     tod = np.arange(SLOTS) / 12.0                       # hour of day, 0..24
     cmap = _month_cmap(); mnorm = Normalize(1, 12)
-    rng = np.random.default_rng(42)                     # fixed: reproducible draw order
     fig, ax = plt.subplots(1, 2, figsize=(13, 5.2), sharey=True)
     counts = {}
     for a, (dow, name) in zip(ax, [(4, "Friday"), (5, "Saturday")]):
@@ -285,18 +285,14 @@ def fig_weekend_day_bands(df):
         k90 = max(2, int(np.ceil(0.90 * len(depth))))   # deepest 90 % = inside the 90 % band
         k68 = max(2, int(np.ceil(0.68 * len(depth))))
         in90 = order[:k90]
-        out = order[k90:]                               # the dropped depth-outliers
-        counts[name] = {"kept_90pct": int(k90),
-                        "outliers": {str(pd.Timestamp(dates[i]).date()): _holiday_tag(dates[i])
-                                     for i in out}}
+        counts[name] = {"kept_90pct": int(k90), "dropped_outliers": int(len(depth) - k90)}
         lo90, hi90 = M[in90].min(0), M[in90].max(0)
         lo68, hi68 = M[order[:k68]].min(0), M[order[:k68]].max(0)
         med = M[order[0]]                               # functional median = deepest real day
         months = pd.DatetimeIndex(dates).month.values
-        # only the trajectories INSIDE the 90 % band — the ~10 % outliers are dropped.
-        # draw in random z-order (not chronological) so no month sits on top of the rest
-        for i in rng.permutation(in90):
-            a.plot(tod, M[i], color=cmap(mnorm(months[i])), lw=0.6, alpha=0.30, zorder=1)
+        # only the trajectories INSIDE the 90 % band — the ~10 % outliers are dropped
+        for i in in90:
+            a.plot(tod, M[i], color=cmap(mnorm(months[i])), lw=0.6, alpha=0.42, zorder=1)
         # nested functional bands: 90 % wider & lighter, 68 % narrower & darker
         a.fill_between(tod, lo90, hi90, color="#3a3a3a", alpha=0.12, zorder=2, lw=0,
                        label="central 90 % of days")
@@ -305,15 +301,9 @@ def fig_weekend_day_bands(df):
         # bold near-black median line
         a.plot(tod, med, color="#111111", lw=2.4, zorder=5, label="median day")
         a.set_title(f"{name} — {k90} days inside 90 % band "
-                    f"({len(out)} outliers dropped)"); a.set_xlim(0, 24)
+                    f"({len(depth) - k90} outliers dropped)"); a.set_xlim(0, 24)
         a.set_xticks(range(0, 25, 3)); a.set_xlabel("hour of day (Berlin local)")
         a.legend(loc="upper left", fontsize=7, framealpha=0.85)
-        # annotate which days were dropped and whether they were holidays
-        lines = [f"{pd.Timestamp(dates[i]).strftime('%d %b %Y')}  ·  {_holiday_tag(dates[i])}"
-                 for i in out]
-        a.text(0.985, 0.97, "dropped outliers:\n" + "\n".join(lines),
-               transform=a.transAxes, ha="right", va="top", fontsize=6.4, color="#333",
-               bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="#bbb", alpha=0.85))
     ax[0].set_ylabel("PKW / 5 min")
     sm = cm.ScalarMappable(norm=mnorm, cmap=cmap); sm.set_array([])
     cb = fig.colorbar(sm, ax=ax, fraction=0.025, pad=0.01)
@@ -329,18 +319,33 @@ def fig_weekend_day_bands(df):
 
 def fig_weekend_day_spaghetti(df):
     """Companion to fig 14 with the bands and median stripped out: every Friday/
-    Saturday full-day trajectory, all kept, coloured by month — the raw curve set."""
+    Saturday full-day trajectory, all kept, coloured by month — the raw curve set,
+    with the band-depth outlier days emphasised and labelled (holiday status)."""
     tod = np.arange(SLOTS) / 12.0
     cmap = _month_cmap(); mnorm = Normalize(1, 12)
-    rng = np.random.default_rng(42)                     # fixed: reproducible draw order
     fig, ax = plt.subplots(1, 2, figsize=(13, 5.2), sharey=True)
     for a, (dow, name) in zip(ax, [(4, "Friday"), (5, "Saturday")]):
         dates, M = _day_matrix(df, dow)
         months = pd.DatetimeIndex(dates).month.values
-        # ALL trajectories, none dropped; random z-order + low alpha so no month/date
-        # range systematically overpaints the others (fairer, less one-sided read)
-        for i in rng.permutation(len(M)):
-            a.plot(tod, M[i], color=cmap(mnorm(months[i])), lw=0.6, alpha=0.38, zorder=1)
+        depth = _mbd(M)
+        order = np.argsort(-depth)
+        k90 = max(2, int(np.ceil(0.90 * len(depth))))
+        outs = order[k90:]                              # band-depth outlier days
+        outs = outs[np.argsort(dates[outs])]            # chronological for the legend
+        # ALL trajectories: thin lines kept very transparent so dense overlap reads as
+        # density rather than whichever curve happens to be drawn last (no z-order hack)
+        for i in range(len(M)):
+            if i in set(outs.tolist()):
+                continue
+            a.plot(tod, M[i], color=cmap(mnorm(months[i])), lw=0.5, alpha=0.22, zorder=1)
+        # outlier days: same month colour, bold with a white halo so they lift cleanly
+        # off the faint mass; a small legend names each with its date + holiday status
+        for i in outs:
+            a.plot(tod, M[i], color=cmap(mnorm(months[i])), lw=1.6, alpha=0.97, zorder=4,
+                   path_effects=[pe.Stroke(linewidth=3.0, foreground="white"), pe.Normal()],
+                   label=f"{pd.Timestamp(dates[i]).strftime('%-d %b %Y')} · {_holiday_tag(dates[i])}")
+        a.legend(loc="upper left", fontsize=6.6, framealpha=0.9,
+                 title=f"band-depth outliers ({len(outs)})", title_fontsize=6.6)
         a.set_title(f"{name} — all {len(M)} full days"); a.set_xlim(0, 24)
         a.set_xticks(range(0, 25, 3)); a.set_xlabel("hour of day (Berlin local)")
     ax[0].set_ylabel("PKW / 5 min")
