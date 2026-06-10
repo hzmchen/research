@@ -19,5 +19,6 @@ See each topic's own `README.md` for details.
 | Topic | Location | Notes |
 | ----- | -------- | ----- |
 | Berlin traffic data — groundwork | [`berlin-traffic-groundwork/`](berlin-traffic-groundwork/) | Survey of Berlin mobility data across all modes & provenance tiers, with access/quality/coverage/usability ratings. |
+| City-development regulations | [`city-development-regulations/`](city-development-regulations/) | Regulations governing urban development. First focus: Berlin road planning — when is a four-lane layout ("vierstreifige Verkehrsführung") necessary or allowed? |
 
 See [AGENTS.md](AGENTS.md) for agent/automation setup.
