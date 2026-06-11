@@ -1,0 +1,31 @@
+edition,kind,layer,link,value,extras,d_TE180_m,d_TE181_m
+1993,"DTV (Umweltatlas, classed)",ua_verkehrsmengen_1993:verkehrsmengen1993,3616287328440000,20001 - 30000,{},176,12
+1993,"DTV (Umweltatlas, classed)",ua_verkehrsmengen_1993:verkehrsmengen1993,3617287428730000,20001 - 30000,{},176,12
+1998,DTV (Umweltatlas),ua_verkehrsmengen_1998:verkehrsmengen1998,1000,23084,"{""dtv_lkw"": 756}",162,15
+1998,DTV (Umweltatlas),ua_verkehrsmengen_1998:verkehrsmengen1998,1100,19576,"{""dtv_lkw"": 756}",59,15
+1998,DTV (Umweltatlas),ua_verkehrsmengen_1998:verkehrsmengen1998,1200,19576,"{""dtv_lkw"": 756}",13,118
+1998,DTV (Umweltatlas),ua_verkehrsmengen_1998:verkehrsmengen1998,1300,19576,"{""dtv_lkw"": 756}",13,190
+2005,DTV (Umweltatlas),ua_verkehrsmengen_2005:verkehrsmengen2005,STRb4552,26016,{},159,17
+2005,DTV (Umweltatlas),ua_verkehrsmengen_2005:verkehrsmengen2005,STRb4553,25744,{},58,17
+2005,DTV (Umweltatlas),ua_verkehrsmengen_2005:verkehrsmengen2005,STRb4554,25744,{},15,119
+2005,DTV (Umweltatlas),ua_verkehrsmengen_2005:verkehrsmengen2005,STRb4555,25744,{},15,190
+2009,DTV (Umweltatlas),ua_verkehrsmengen_2009:verkehrsmengen2009,3915,22430,"{""slkw"": 606, ""llkw"": 1772}",59,17
+2009,DTV (Umweltatlas),ua_verkehrsmengen_2009:verkehrsmengen2009,3916,22430,"{""slkw"": 606, ""llkw"": 1772}",160,17
+2009,DTV (Umweltatlas),ua_verkehrsmengen_2009:verkehrsmengen2009,4085,22430,"{""slkw"": 606, ""llkw"": 1772}",14,190
+2009,DTV (Umweltatlas),ua_verkehrsmengen_2009:verkehrsmengen2009,4086,22430,"{""slkw"": 606, ""llkw"": 1772}",14,118
+2014,DTV (Umweltatlas),ua_verkehrsmengen_2014:verkehrsmengen_2014,45550015_45560019,20070,"{""pkw"": 16488, ""lkw"": 722, ""lieferwagen"": 2048}",15,119
+2014,DTV (Umweltatlas),ua_verkehrsmengen_2014:verkehrsmengen_2014,45550016_45550015,18630,"{""pkw"": 15212, ""lkw"": 670, ""lieferwagen"": 1900}",15,191
+2014,DTV (Umweltatlas),ua_verkehrsmengen_2014:verkehrsmengen_2014,45560019_46560013,20070,"{""pkw"": 16478, ""lkw"": 722, ""lieferwagen"": 2048}",58,18
+2014,DTV (Umweltatlas),ua_verkehrsmengen_2014:verkehrsmengen_2014,46560013_46560007,20070,"{""pkw"": 16478, ""lkw"": 722, ""lieferwagen"": 2048}",159,18
+2019,DTV (Umweltatlas),ua_verkehrsmengen_2019:verkehrsmengen_2019,45550015_45560019,18260,"{""pkw"": 14330, ""lkw"": 670, ""lieferwagen"": 2340}",15,119
+2019,DTV (Umweltatlas),ua_verkehrsmengen_2019:verkehrsmengen_2019,45550016_45550015,18260,"{""pkw"": 14330, ""lkw"": 670, ""lieferwagen"": 2340}",15,191
+2019,DTV (Umweltatlas),ua_verkehrsmengen_2019:verkehrsmengen_2019,45560019_46560013,18260,"{""pkw"": 14330, ""lkw"": 670, ""lieferwagen"": 2340}",58,18
+2019,DTV (Umweltatlas),ua_verkehrsmengen_2019:verkehrsmengen_2019,46560013_46560007,19800,"{""pkw"": 15600, ""lkw"": 680, ""lieferwagen"": 2540}",159,18
+2019,DTVw (Verkehrsmengenkarte),verkehrsmengen_2019:dtvw2019kfz,45550015_45560019,20100,"{""str_name"": ""Torstraße""}",15,119
+2019,DTVw (Verkehrsmengenkarte),verkehrsmengen_2019:dtvw2019kfz,45550016_45550015,20100,"{""str_name"": ""Torstraße""}",15,191
+2019,DTVw (Verkehrsmengenkarte),verkehrsmengen_2019:dtvw2019kfz,45560019_46560013,20100,"{""str_name"": ""Torstraße""}",58,18
+2019,DTVw (Verkehrsmengenkarte),verkehrsmengen_2019:dtvw2019kfz,46560013_46560007,21800,"{""str_name"": ""Torstraße""}",159,18
+2023,DTVw (Verkehrsmengenkarte),verkehrsmengen_2023:dtvw2023kfz,45550015_45560019,18200,"{""str_name"": ""Torstraße""}",15,119
+2023,DTVw (Verkehrsmengenkarte),verkehrsmengen_2023:dtvw2023kfz,45550016_45550015,18400,"{""str_name"": ""Torstraße""}",15,191
+2023,DTVw (Verkehrsmengenkarte),verkehrsmengen_2023:dtvw2023kfz,45560019_46560013,20800,"{""str_name"": ""Torstraße""}",58,18
+2023,DTVw (Verkehrsmengenkarte),verkehrsmengen_2023:dtvw2023kfz,46560013_46560007,18900,"{""str_name"": ""Torstraße""}",159,18

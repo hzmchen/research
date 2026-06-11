@@ -37,6 +37,8 @@ licence, and how good it is*.
 | **DTV & DTVw reference** (meaning, sources, editions, conversion) | [`dtv-dtvw-reference.md`](dtv-dtvw-reference.md) |
 | TEU detectors & the VIZ/DPS data API | [`teu-detectors-viz-api/`](teu-detectors-viz-api/) |
 | Single-site detector deep dive (TC073, Str. des 17. Juni) | [`tc073-deepdive/`](tc073-deepdive/) |
+| Single-site detector deep dive (TE180, Torstraße West) | [`te180-deepdive/`](te180-deepdive/) |
+| **Peak hour (Spitzenstunde), all definitions computed** — Torstraße cross-section TE180+TE181, incl. 30 years of official DTV/DTVw | [`torstrasse-peak-hour/`](torstrasse-peak-hour/) |
 | **Legal speed limits** (OSM · FIS-Broker/Geoportal · VIZ) | [`speed-limits/`](speed-limits/) |
 
 ## Rating scheme
