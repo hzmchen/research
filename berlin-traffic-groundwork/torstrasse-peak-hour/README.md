@@ -209,11 +209,11 @@ DTV shortcuts jump the fence into 1,600-2,600.
 - 2015-2017 (TE181 bulk contamination) and 2021-2025 (coverage collapse;
   TE181 ≤ 28 %, TE180 dead from April 2025) carry no headline metrics. 2020
   is a COVID year — shown, but atypical (everything ~12 % below 2019).
-- **The 2024-11 → 2025-07 tail from the FROST SensorThings API is un-QA'd**
-  (no `qualitaet` field; blob rows win wherever both exist, and FROST never
-  fills hours the blob QA rejected). TE181's late counts look degraded
-  (workday levels far below earlier years, speed stream half-missing), so the
-  2025 row in the table is indicative only — it is also the series' end:
+- **The 2024-11 → 2025-07 tail from the FROST SensorThings API is un-QA'd
+  and, per the dedicated QA in [`frost-qa.md`](frost-qa.md), effectively
+  invalid**: FROST's "Messquerschnitt" rollup silently degrades to a
+  single-lane sum (total for TE181 from 2024-12), so the 2025 row should be
+  read as invalid, not merely low-coverage. It is also the series' end:
   Torstraße has no live successor detector (no ThermiCam site).
 - Other street-closing events (half-marathon, demonstrations, roadworks) are
   *not* systematically excluded — only the marathon's runner-count signature
