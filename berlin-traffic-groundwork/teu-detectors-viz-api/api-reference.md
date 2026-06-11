@@ -166,14 +166,23 @@ verkehrsdetektion/
 ├── Stammdaten_Verkehrsdetektion_2022_07_20.xlsx ← detector ↔ street/coords map
 ├── 2015/ … 2024/
 │   ├── alte_qualitaetssicherung/
-│   │   ├── Fahrstreifendetektoren/             ← per-lane detector CSVs
-│   │   └── Messquerschnitte/                   ← aggregated cross-section CSVs
-│   └── neue_qualitaetssicherung/
+│   │   ├── Fahrstreifendetektoren/             ← per-lane detector CSVs (det_val_hr_YYYY_MM.csv.gz)
+│   │   └── Messquerschnitte/                   ← aggregated cross-section CSVs (mq_hr_YYYY_MM.csv.gz)
+│   └── neue_qualitaetssicherung/               ← ⚠️ exists only from 2023!
 │       └── Fahrstreifendetektoren/
-│           └── detektor_YYYY_MM.tgz            ← monthly archive, 1 CSV per detector
+│           └── detektoren_YYYY_MM.tgz          ← monthly archive, 1 CSV per detector
 └── 2025/
     └── neue_qualitaetssicherung/Fahrstreifendetektoren/detektor_2025_01..06.tgz
 ```
+
+⚠️ **Corrections from actually listing the container (2026-06-11):** the
+neue-QS folders exist **only for 2023-2025** (2015-2022 carry alte QS alone);
+the tgz stem is `detektoren_` in 2023/24 but `detektor_` in 2025; and the
+neue-QS CSV schema varies — 2023/24 files use the long header (`Datum
+(Ortszeit);…`) with a `Vollständigkeit` (0-100) quality field, 2025 files the
+short header with `Datapoints_Rel` (0-1). See
+[`../torstrasse-peak-hour/fetch_neuqa.py`](../torstrasse-peak-hour/fetch_neuqa.py)
+for a parser handling all variants.
 
 - **Time range:** **2015 → 2025-06** at the snapshot (no 2026 folder yet; latest
   monthly archive = `detektor_2025_06.tgz`). The open archive is **hourly,

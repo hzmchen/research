@@ -232,6 +232,61 @@ Three structural facts the lane level adds:
   three TE180 series); the East side carries every pathology: HF1 chronic
   (8 clean months), HF2 sick from ~2022, the MQ inheriting both.
 
+## Source vs source: alte QS · neue QS · FROST — values, missingness, validity
+
+Three pipelines publish (subsets of) the same measurements: the **alte
+Qualitätssicherung** blob archive, the **neue Qualitätssicherung** blob
+archive (lane CSVs, **2023-01 → 2025-06 only**; `fetch_neuqa.py` — note three
+header variants and a quality field that is `Vollständigkeit` 0-100 in
+2023/24 but `Datapoints_Rel` 0-1 in 2025), and the **FROST** SensorThings
+rollups. Each has its own validity philosophy:
+
+| Source | Publishes | Quality semantics | TE181, common era 2023-24: valid / flagged / missing |
+|---|---|---|---|
+| alte QS | only hours that pass its gate | `qualitaet` — **degenerate in the files** (sub-0.75 rows are pre-dropped) | 47.8 % / 0 % / 52.2 % |
+| neue QS | partial hours **with** their flag | `Vollständigkeit`/`Datapoints_Rel` < 0.75 ⇒ flagged | 46.8 % / **19.3 %** / 33.9 % |
+| FROST | everything | none (our plausibility rule: 0 < q ≤ 1,300) | **80.7 %** / 2.8 % / 16.4 % |
+
+The three publication rates — ~48 %, ~48 %, **81 %** of the same hour grid —
+are the quality story in one line: **FROST's "extra" third is almost exactly
+the invalid part** that both QS pipelines suppress. (On the healthy West
+side all three publish ~47 % and agree.)
+
+![overlap carpet Ost](figures/12_overlap_carpet_te181.png)
+
+The carpet shows every (day × hour) cell, 2022-2025, for TE181: one band per
+source (colour = that source's own validity verdict) plus an **agreement
+band** (green: ≥2 valid sources within max(10 Kfz, 5 %); red: valid sources
+*disagreeing*). Readings: 2022 is FROST-alone (grey agreement — nothing to
+cross-check); 2023 turns **red precisely in the daytime hours** from ~March
+(the undercount era — sources disagree most where traffic is); in 2024 the
+neue QS honestly publishes mostly *flagged* (light green) hours while FROST
+keeps publishing them as if fine; 2025 is FROST-alone again. The
+[West-side carpet](figures/12_overlap_carpet_te180.png) is its quiet
+counterpart: sources either all-missing or all-agreeing.
+
+![source scatter](figures/10_source_scatter.png)
+
+Pairwise value agreement on jointly-valid hours (median diff is 0 Kfz for
+every pair): West — alte↔neue 77 %, alte↔FROST 82 %, neue↔FROST 86 % within
+tolerance; Ost — **the two QS pipelines agree with each other (83 %) far
+better than either agrees with FROST (65 % / 64 %)**. Disagreement lives in
+the tails, not the centre.
+
+![source dots](figures/11_source_dots.png)
+
+The literal side-by-side: every hour as a high-transparency dot (red = that
+source's own flag). The Ost 2024 panel shows FROST's red flagged cloud at
+implausibly low values exactly where the QS pipelines publish little.
+
+![source patterns](figures/13_source_patterns.png)
+
+Diurnal, weekly and seasonal profiles per source (2023, valid hours): on the
+West all three curves are nearly indistinguishable — **the sources never
+disagree about patterns, only about levels on a sick sensor**, where FROST
+sits systematically low because its "valid" set still contains undercounted
+hours the QS pipelines reject.
+
 ## Limitations
 
 - **The synthetic cross-section is an approximation**: TE180 and TE181 are
@@ -268,10 +323,12 @@ Three structural facts the lane level adds:
 cd berlin-traffic-groundwork/torstrasse-peak-hour
 python3 fetch.py        # 120 monthly MQ bundles, sequential + cached (~8 min)
 python3 fetch_lanes.py  # 120 monthly lane bundles (Fahrstreifendetektoren)
+python3 fetch_neuqa.py  # 30 monthly neue-QS bundles (2023-2025)
 python3 fetch_frost.py  # un-QA'd 2024-11..2025-07 tail from the FROST API
 python3 fetch_dtv.py    # 8 WFS queries for the 1993-2023 editions
 python3 analyze.py      # pure function of the cached CSVs -> figures + summary.json
 python3 timeline.py     # fig 09: full-sample lanes/MQ/cross timeline (offline)
+python3 compare_sources.py  # figs 10-13: source-vs-source values + validity
 ```
 
 Both fetchers are idempotent, sequential and paced (see
