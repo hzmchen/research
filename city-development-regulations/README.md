@@ -45,6 +45,7 @@ before quoting. Sources are graded for credibility:
 | Doc | Topic |
 |-----|-------|
 | [01-berlin-vierstreifige-verkehrsfuehrung](01-berlin-vierstreifige-verkehrsfuehrung.md) | When is a four-lane road necessary or allowed in Berlin? Covers all three regulatory senses: permanent cross-section planning, operational lane allocation (§ 45 StVO), temporary work-zone routing (RSA 21). |
+| [02-rast06-peak-hour-kfz-h](02-rast06-peak-hour-kfz-h.md) | What "peak veh/h" means in RASt 06: peak-hour Kfz/h at the cross-section, current or forecast — and how the number is actually obtained (n-th-highest-hour MSV per HBS/ARS 14/2015, short counts, ~10 %-of-DTV heuristic). |
 
 Related topic in this repo: [`berlin-traffic-groundwork/`](../berlin-traffic-groundwork/)
 surveys Berlin traffic *data*; its [DTV/DTVw reference](../berlin-traffic-groundwork/dtv-dtvw-reference.md)

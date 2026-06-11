@@ -136,7 +136,9 @@ Necessity is established case-by-case in the planning process, by combining:
   with **five partly overlapping peak-hour volume ranges** referred to the
   cross-section, *"which may refer to current or forecast levels"*: < 400,
   400–1,000, 800–1,800, 1,600–2,600, and > 2,600 vehicles per hour [V, FGSV
-  200 E]. The capacity figures it states (section 6.1.1) [V]:
+  200 E]. On what "peak hour" means there and how the Kfz/h value is obtained
+  in practice, see [02-rast06-peak-hour-kfz-h](02-rast06-peak-hour-kfz-h.md).
+  The capacity figures it states (section 6.1.1) [V]:
 
   | Cross-section type | Capacity (RASt 06) |
   |--------------------|--------------------|
@@ -355,5 +357,5 @@ is the standard way to avoid capacity collapse.
 | 14 | [ortsdurchfahrt-reinhardtsgrimma.de — RASt 06 summary](https://ortsdurchfahrt-reinhardtsgrimma.de/rast06.html) | D | Two-lane design ranges [V — secondary] |
 | 15 | [VCD Bayern — RASt 06 note (PDF)](http://vcd-bayern.de/texte/20140628_RASt.pdf) | C | 750 Kfz/h guidance value [S — fetch failed (TLS), search snippet only] |
 | 16 | [berlin.de — Erforderlichkeit der Planfeststellung](https://www.berlin.de/sen/uvk/mobilitaet-und-verkehr/verkehrsplanung/planfeststellungen/erforderlichkeit/) | A | PFV requirement [S] |
-| 17 | [FGSV 200 E — RASt 06, official English translation "Directives for the Design of Urban Roads", Edition 2006 / Translation 2012 (publisher PDF, 133 pp.)](https://www.fgsv-verlag.de/pub/media/pdf/200_E_PDF.v.pdf) | A | Volume bands, two-/four-lane capacities, four-lane forms (sections 5.2 step 3, 6.1.1.2–6.1.1.5) [V — supersedes #14/#15 for all RASt figures] |
+| 17 | [FGSV 200 E — RASt 06, official English translation "Directives for the Design of Urban Roads", Edition 2006 / Translation 2012 (publisher PDF, 133 pp.)](https://www.fgsv-verlag.de/pub/media/pdf/200_E_PDF.v.pdf) | A | Volume bands, two-/four-lane capacities, four-lane forms (sections 5.1.1 step 3, 6.1.1.2–6.1.1.5) [V — supersedes #14/#15 for all RASt figures] |
 | 18 | [FGSV 26502 — Ad-hoc-Arbeitspapier "Ergänzende Handlungsanleitungen zur Anwendung der RASt 06", Feb 2024 (publisher PDF, complete)](https://www.fgsv-verlag.de/pub/media/pdf/26502.v.pdf) | A | RASt revision status, QSV as policy lever, Umweltverbund priorities, updated widths [V] |
