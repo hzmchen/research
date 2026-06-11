@@ -152,6 +152,10 @@ def main() -> None:
     plt.close(fig)
 
     # ---- lane backing of the MQ rollup -------------------------------------
+    # NB a lane that is PRESENT with value 0 is treated as its own category:
+    # hourly zeros are physically impossible here (blob 2018-20 floor:
+    # 3-5 Kfz/h, never 0), so lane==0 beside a busy lane is a dead head
+    # reporting zeros - the MQ "sum" is then a disguised single-lane value.
     print("\n== lane backing of MQ hourly values")
     backing = {}
     fig, axes = plt.subplots(1, 2, figsize=(12, 4), sharey=True)
@@ -159,33 +163,74 @@ def main() -> None:
         df = pd.DataFrame({l: hr_q[(t, l)] for l in LEVELS}).dropna(
             subset=["mq"])
         both = df["hf1"].notna() & df["hf2"].notna()
+        fake = both & (((df["hf1"] == 0) & (df["hf2"] >= 100))
+                       | ((df["hf2"] == 0) & (df["hf1"] >= 100)))
+        true_both = both & ~fake
         one = df["hf1"].notna() ^ df["hf2"].notna()
         none = ~(df["hf1"].notna() | df["hf2"].notna())
         sum_ok = (df.loc[both, "mq"]
                   - df.loc[both, "hf1"] - df.loc[both, "hf2"]).abs() <= 2
         single = df.loc[one, ["hf1", "hf2"]].sum(axis=1, min_count=1)
         single_ok = (df.loc[one, "mq"] - single).abs() <= 2
+        eff_single = (fake.sum() + one.sum()) / max(len(df), 1)
         backing[t] = dict(
-            mq_hours=int(len(df)), both=int(both.sum()), one=int(one.sum()),
+            mq_hours=int(len(df)), both_true=int(true_both.sum()),
+            both_fake_zero=int(fake.sum()), one=int(one.sum()),
             none=int(none.sum()),
+            effective_single_lane_share=round(float(eff_single), 4),
             sum_match_when_both=round(float(sum_ok.mean()), 4) if both.any() else None,
             mq_equals_single_lane=round(float(single_ok.mean()), 4) if one.any() else None)
         print(f"  {t}: {backing[t]}")
-        share = pd.DataFrame({"2 lanes": both, "1 lane": one, "0 lanes": none})
+        share = pd.DataFrame({"true both": true_both, "fake zero": fake,
+                              "1 lane": one, "0 lanes": none})
         share = share.groupby(df.index.to_period("M")).mean().reindex(months)
-        ax.stackplot(months.to_timestamp(), share["2 lanes"].fillna(0),
-                     share["1 lane"].fillna(0), share["0 lanes"].fillna(0),
-                     colors=["#2ca02c", "#ff7f0e", "#d62728"],
-                     labels=["both lanes", "ONE lane only", "no lane stream"])
+        ax.stackplot(months.to_timestamp(), share["true both"].fillna(0),
+                     share["fake zero"].fillna(0), share["1 lane"].fillna(0),
+                     share["0 lanes"].fillna(0),
+                     colors=["#2ca02c", "#bcbd22", "#ff7f0e", "#d62728"],
+                     labels=["both lanes > 0", "one lane FALSE ZERO",
+                             "ONE lane only", "no lane stream"])
         ax.set_title(f"{t}: what backs an 'MQ' hour?")
         ax.set_ylim(0, 1)
         ax.legend(fontsize=8, loc="lower left")
     fig.suptitle("The Messquerschnitt rollup silently degrades to whatever "
-                 "lanes still report", y=1.02)
+                 "lanes still report — incl. dead lanes reporting zeros",
+                 y=1.02)
     fig.tight_layout()
     fig.savefig(FIG / "qa3_lane_backing.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
     out["lane_backing"] = backing
+
+    # ---- zero semantics & partial-hour rollups ------------------------------
+    print("\n== hourly zeros (physically impossible) per count stream")
+    zeros = {}
+    for (t, l), s in hr_q.items():
+        v = s.dropna()
+        z = v[v == 0]
+        zeros[f"{t}_{l}"] = dict(
+            zero_hours=int(len(z)),
+            daytime=int(((z.index.hour >= 6) & (z.index.hour <= 22)).sum()),
+            by_year={int(y): int(n) for y, n in
+                     z.groupby(z.index.year).size().items()})
+        print(f"  {t} {l:3s}: {zeros[f'{t}_{l}']}")
+    out["hourly_zeros"] = zeros
+
+    print("\n== partial-hour rollups (sampled windows): hourly values over "
+          "incomplete 5-min input")
+    partial = {}
+    for t in THINGS:
+        v = m5_q[(t, "mq")].dropna()
+        cnt = v.resample("1h").count()
+        ssum = v.resample("1h").sum()
+        p = cnt[(cnt > 0) & (cnt < 12)]
+        hp = hr_q[(t, "mq")].reindex(p.index).dropna()
+        partial[t] = dict(
+            partial_hours_in_windows=int(len(p)),
+            hourly_value_exists=int(len(hp)),
+            equals_partial_sum=int(((hp - ssum.reindex(hp.index)).abs()
+                                    <= 2).sum()))
+        print(f"  {t}: {partial[t]}")
+    out["partial_hour_rollup"] = partial
 
     # ---- cross-check vs the QA'd blob archive ------------------------------
     print("\n== FROST hourly vs QA'd blob archive (matched hours)")

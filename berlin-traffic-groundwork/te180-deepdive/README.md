@@ -42,6 +42,14 @@ Two things stand out against TC073:
 > closures on ThermiCam would, on TEU, **mistake every multi-day sensor outage for an
 > empty street.** The reporting convention is sensor-specific, and you have to know
 > which one you're holding.
+>
+> ⚠️ **Scope limit (added after the TE181 QA):** "never emits zeros" describes a
+> *healthy-but-interrupted* TEU sensor like TE180 in this year. A *degrading* TEU
+> lane does the opposite — TE181 across the street emitted **years of false zeros**
+> (interleaved zero 5-min readings that sum into plausible-looking, undercounted
+> hourly values). On TEU, absence of data means sensor trouble — and so does a
+> present-but-zero hourly value. See
+> [`../torstrasse-peak-hour/frost-qa.md`](../torstrasse-peak-hour/frost-qa.md) § 4.
 
 ## Site & data
 

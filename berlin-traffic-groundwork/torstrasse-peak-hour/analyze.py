@@ -108,7 +108,11 @@ def load() -> pd.DataFrame:
     scrub = {}
     marathon = wide["date"].isin(MARATHON_SUNDAYS)
     for c in ("west", "ost"):
-        bad = wide[c] > SCRUB_MAX            # artefact scrub (counted)
+        # artefact scrub (counted): spikes above the clean-period envelope,
+        # and exact zeros — an hourly zero is physically impossible here
+        # (2018-2020 floor: 3-5 Kfz/h, never 0) and marks a dead lane head
+        # reporting zeros; see frost-qa.md "Do zeros mean 'no cars'?"
+        bad = (wide[c] > SCRUB_MAX) | (wide[c] == 0)
         scrub[c] = wide.loc[bad].groupby("year")[c].size().to_dict()
         wide.loc[bad | marathon, c] = np.nan  # marathon Sundays: runners, not Kfz
     wide["cross"] = wide["west"] + wide["ost"]          # NaN unless both valid

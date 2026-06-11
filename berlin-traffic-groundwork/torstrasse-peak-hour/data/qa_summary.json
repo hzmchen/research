@@ -294,19 +294,87 @@
  "lane_backing": {
   "TE180": {
    "mq_hours": 16277,
-   "both": 15038,
+   "both_true": 15018,
+   "both_fake_zero": 20,
    "one": 1239,
    "none": 0,
+   "effective_single_lane_share": 0.0773,
    "sum_match_when_both": 1.0,
    "mq_equals_single_lane": 0.9976
   },
   "TE181": {
    "mq_hours": 25718,
-   "both": 12932,
+   "both_true": 7551,
+   "both_fake_zero": 5381,
    "one": 11764,
    "none": 1022,
+   "effective_single_lane_share": 0.6667,
    "sum_match_when_both": 0.9999,
    "mq_equals_single_lane": 0.8655
+  }
+ },
+ "hourly_zeros": {
+  "TE180_mq": {
+   "zero_hours": 0,
+   "daytime": 0,
+   "by_year": {}
+  },
+  "TE180_hf1": {
+   "zero_hours": 23,
+   "daytime": 17,
+   "by_year": {
+    "2022": 1,
+    "2023": 20,
+    "2024": 1,
+    "2025": 1
+   }
+  },
+  "TE180_hf2": {
+   "zero_hours": 0,
+   "daytime": 0,
+   "by_year": {}
+  },
+  "TE181_mq": {
+   "zero_hours": 569,
+   "daytime": 355,
+   "by_year": {
+    "2022": 9,
+    "2023": 281,
+    "2024": 133,
+    "2025": 146
+   }
+  },
+  "TE181_hf1": {
+   "zero_hours": 7204,
+   "daytime": 4925,
+   "by_year": {
+    "2022": 820,
+    "2023": 4614,
+    "2024": 1273,
+    "2025": 497
+   }
+  },
+  "TE181_hf2": {
+   "zero_hours": 638,
+   "daytime": 404,
+   "by_year": {
+    "2022": 2,
+    "2023": 290,
+    "2024": 225,
+    "2025": 121
+   }
+  }
+ },
+ "partial_hour_rollup": {
+  "TE180": {
+   "partial_hours_in_windows": 4,
+   "hourly_value_exists": 4,
+   "equals_partial_sum": 1
+  },
+  "TE181": {
+   "partial_hours_in_windows": 43,
+   "hourly_value_exists": 24,
+   "equals_partial_sum": 11
   }
  },
  "blob_crosscheck": {

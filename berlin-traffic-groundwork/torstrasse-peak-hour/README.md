@@ -62,7 +62,12 @@ Three data-quality interventions, all visible in the figures:
 1. **Plausibility scrub.** Directional hours > 1,300 Kfz/h are sensor
    artefacts (clean-period envelope max ≈ 1,230): the flagged hours show
    3,400-4,100 Kfz/h at 8-12 km/h crawl speeds — including 3,835 Kfz/h at
-   **4 a.m.** They are set to missing (counts per year in `summary.json`).
+   **4 a.m.** Also scrubbed: directional hours of exactly **0 Kfz/h** — the
+   2018-2020 floor is 3-5 Kfz/h (never zero), and the QA in
+   [`frost-qa.md`](frost-qa.md) § 4 shows hourly zeros are dying lane heads
+   reporting false zeros, not empty streets (validated against the
+   blocked-lane alternative). Both are set to missing (counts per year in
+   `summary.json`); the headline years 2018-2020 contain neither.
 2. **Marathon Sundays excluded.** The BMW Berlin-Marathon course runs
    **along Torstraße** (Reinhardtstr. → Torstraße → Karl-Marx-Allee, ~km 7).
    On race Sundays the closed street's infrared detectors **count the
