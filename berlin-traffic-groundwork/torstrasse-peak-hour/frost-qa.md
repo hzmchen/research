@@ -23,15 +23,17 @@ and an hour-by-hour cross-check against the QA'd blob archive
 > **Key insight — the "Messquerschnitt" lie:** FROST's cross-section rollup
 > is simply **the sum of whatever lane detectors happened to report that
 > hour**, with no flag when half the cross-section is missing — and "report"
-> includes **dead lanes reporting zeros**. Verified exactly: when both lanes
+> includes **lanes reporting zeros**. Verified exactly: when both lanes
 > report, MQ = HF1+HF2 in 100.0 % of hours; when one lane reports, MQ equals
 > that single lane; and in **41.6 % of TE181's "both-lane" hours one lane is
-> exactly 0 beside a busy lane** — a false zero that the sum-identity check
-> cannot see. Counting those, **two-thirds (66.7 %) of TE181's 25,718
-> "cross-section" hours are effectively single-lane**, and 4 % are backed by
-> no lane stream at all. A FROST MQ value is only interpretable *together
-> with* its lane streams — and a zero or near-zero is a sensor statement,
-> not a traffic statement (§4).
+> exactly 0 beside a busy lane** — a zero the sum-identity check cannot
+> interrogate. Counting those, **two-thirds (66.7 %) of TE181's 25,718
+> "cross-section" hours rest on a single lane**, and 4 % are backed by no
+> lane stream at all. Whether such an hour is *valid* depends on which lane
+> and when: the right lane's zeros are largely **structural** (a
+> quasi-parking lane; § 4 post-script), the through-lane's are **sensor
+> pathology**. A FROST MQ value is only interpretable *together with* its
+> lane streams.
 
 ## Why the 2025 tail looked bad while the deepdive looked promising
 
@@ -202,12 +204,32 @@ main explanation**, on five independent grounds:
    231 Kfz/h in Dec 2024 before final death — a physically blocked lane
    does not resume full service for a month.
 
-What survives of the hypothesis: individual multi-day zero blocks *may*
+**Post-script — the full-sample lane data partially rehabilitates the
+hypothesis, for one lane.** With the blob *lane-level* archive (2015-2024,
+`fetch_lanes.py`) the structure becomes visible: the right lanes are
+**quasi-parking lanes** at both detector spots (clean-year daytime medians:
+West-HF1 55, **Ost-HF1 14** Kfz/h vs ~500-570 in the through-lanes), and
+Ost-HF1 sat at zero in **43 % of daytime hours even in 2018-2020** — those
+zeros are largely **structural** (no moving traffic over a parked-up spot),
+not a dying head. In that era the "single-lane" MQ values were *valid*: MQ ≈
+HF2 matched the envelope and the official map. What the hypothesis still
+cannot explain — and what the 2023+ verdict actually rests on — is the
+**through-lane**: HF2 producing 52 % zero 5-min slots at volumes where a
+true zero is Poisson-impossible (~e-15 at 400+ Kfz/h), the non-conservation,
+and the MQ undercount. So: right-lane zeros ≈ street design; through-lane
+zeros ≈ sensor pathology; the two look identical in the data and can only be
+separated with this kind of validation. (Ost-HF1's own regime changes — a
+2,751-Kfz/h p99 spike era 2015-2017, nonzero medians jumping to 77-205 in
+2022, a one-month revival at 231 in Dec 2024 — remain unresolved
+sensor-side oddities on top of the structural baseline.)
+
+What survives more generally: individual multi-day zero blocks *may*
 coincide with short local obstructions (not checked event-by-event), and the
 underlying caution is structurally correct — zeros must be *validated*, in
-either direction, not assumed. Hence the scrub rule operates at the hourly
-level (where zeros are physically impossible) and leaves 5-min overnight
-zeros untouched.
+either direction, not assumed. Hence the scrub rule operates at the
+**directional-MQ hourly** level (a zero there needs both lanes empty for an
+hour — impossible while the through-lane alone carries 500+) and leaves
+lane-level and 5-min overnight zeros untouched.
 
 ### 5 · Agreement with the QA'd archive — patterns yes, exact values no
 
@@ -247,7 +269,7 @@ is 5-min-only), never a validity question.
 | TE180 all streams | 2024-02 → 2025-04 | ❌ sparse to dead (values sane when present — anecdote, not statistics) |
 | TE181 MQ, hourly & 5-min | 2022-01 → 2023-12 | ⚠️ usable **only with zero-scrubbing + envelope checks**: interleaved false-zero 5-min readings bias every aggregate low by roughly the zero share (§4), plus spike artefacts (2023); prefer blob, which shares the bias but gates partial hours |
 | TE181 MQ, hourly & 5-min | 2024-01 → 2025-07 | ❌ **unusable as a cross-section**: hourly dark Jan-Feb 2024, then growing single-lane share, total single-lane from 2024-12, terminal value decay. (The 5-min stream can patch the Jan-Feb 2024 *hourly* hole — with all value caveats) |
-| TE181 HF1 (right lane), all | entire era | ❌ zero-emitting through the whole era (7,204 false-zero hours, 99 % zero 5-min slots in the sample week); month-long holes; dead from 2024-12 — **not** a parked-up lane (§4 adjudication) |
+| TE181 HF1 (right lane), all | entire era | ❌ uninformative either way: a **quasi-parking lane** (43 % structural daytime zeros even 2018-2020, median 14 Kfz/h) *plus* sensor oddities (the 2015-17 spike source, month-long holes, dead from 2024-12) — see §4 post-script |
 | TE181 HF2, hourly & 5-min | 2022 → mid-2024 | ⚠️ the *least bad* TE181 series — but its 5-min slots are ~half false zeros too; usable as a single-lane indicator only after zero-scrubbing at sub-hourly level; decays from late 2024 |
 | Speeds | TE180 all era | ✅ plausible (~35 km/h daytime) |
 | Speeds | TE181 from 2023 | ❌ episodes of medians < 20 km/h; half the 2025 hours missing |

@@ -62,12 +62,13 @@ Three data-quality interventions, all visible in the figures:
 1. **Plausibility scrub.** Directional hours > 1,300 Kfz/h are sensor
    artefacts (clean-period envelope max ≈ 1,230): the flagged hours show
    3,400-4,100 Kfz/h at 8-12 km/h crawl speeds — including 3,835 Kfz/h at
-   **4 a.m.** Also scrubbed: directional hours of exactly **0 Kfz/h** — the
-   2018-2020 floor is 3-5 Kfz/h (never zero), and the QA in
-   [`frost-qa.md`](frost-qa.md) § 4 shows hourly zeros are dying lane heads
-   reporting false zeros, not empty streets (validated against the
-   blocked-lane alternative). Both are set to missing (counts per year in
-   `summary.json`); the headline years 2018-2020 contain neither.
+   **4 a.m.** Also scrubbed: **directional-MQ hours of exactly 0 Kfz/h** —
+   the 2018-2020 floor is 3-5 Kfz/h (never zero), and a direction-level zero
+   would need both lanes empty for an hour while the through-lane alone
+   carries 500+. The QA in [`frost-qa.md`](frost-qa.md) § 4 separates this
+   from *lane-level* zeros, which on the quasi-parking right lanes are
+   largely real. Both scrubs are counted per year in `summary.json`; the
+   headline years 2018-2020 contain neither.
 2. **Marathon Sundays excluded.** The BMW Berlin-Marathon course runs
    **along Torstraße** (Reinhardtstr. → Torstraße → Karl-Marx-Allee, ~km 7).
    On race Sundays the closed street's infrared detectors **count the
@@ -199,6 +200,38 @@ All measured definitions agree on **RASt band 800-1,800** (q30/q50 graze the
 the band overlap absorbs exactly this kind of definitional spread). Only the
 DTV shortcuts jump the fence into 1,600-2,600.
 
+## The full sample at a glance — lanes, directions, cross-section
+
+![timeline](figures/09_timeline_full_sample.png)
+
+Every level of the measurement chain over the longest available sample
+(2015-01 → 2025-07), hourly basis, drawn as weekly workday-daytime medians:
+the four lane detectors (`fetch_lanes.py`, blob Fahrstreifendetektoren
+2015-2024), the two directional Messquerschnitte, and the derived
+cross-section. **Line colour = provenance** (dark blue: QA-gated blob
+archive; orange: un-QA'd FROST tail 2022-2025, used only where the blob has
+nothing). **Background = mechanical monthly quality class** (clean / suspect
+/ sparse / none; thresholds in `timeline.py` — note "suspect" catches sensor
+trouble *and* genuine decline below 70 % of the 2018-20 envelope, e.g. the
+COVID dip).
+
+Three structural facts the lane level adds:
+
+- **The right lanes are quasi-parking lanes.** Daytime medians 2018-2020:
+  West-HF1 **55**, Ost-HF1 **14** Kfz/h, vs 567/500 in the second lanes —
+  and Ost-HF1 is at zero in **43 %** of clean-year daytime hours
+  (parked/loading over the detector spot → genuinely no moving traffic).
+  Functionally the street runs on **one through-lane per direction**, which
+  squares neatly with its measured cross-section peak (~1,400-1,600 Kfz/h)
+  sitting in the upper half of RASt 06's *two-lane* capacity band
+  (1,400-2,200 veh/h).
+- **The 2015-2017 contamination pinpoints to Ost-HF1's head** (daytime p99
+  of 2,751 Kfz/h vs 846 on the neighbouring through-lane) — the year-level
+  exclusion stands, but the culprit is one lane detector, not the street.
+- **The West side is clean almost throughout** (≈101 of 112 months for all
+  three TE180 series); the East side carries every pathology: HF1 chronic
+  (8 clean months), HF2 sick from ~2022, the MQ inheriting both.
+
 ## Limitations
 
 - **The synthetic cross-section is an approximation**: TE180 and TE181 are
@@ -234,9 +267,11 @@ DTV shortcuts jump the fence into 1,600-2,600.
 ```bash
 cd berlin-traffic-groundwork/torstrasse-peak-hour
 python3 fetch.py        # 120 monthly MQ bundles, sequential + cached (~8 min)
+python3 fetch_lanes.py  # 120 monthly lane bundles (Fahrstreifendetektoren)
 python3 fetch_frost.py  # un-QA'd 2024-11..2025-07 tail from the FROST API
 python3 fetch_dtv.py    # 8 WFS queries for the 1993-2023 editions
 python3 analyze.py      # pure function of the cached CSVs -> figures + summary.json
+python3 timeline.py     # fig 09: full-sample lanes/MQ/cross timeline (offline)
 ```
 
 Both fetchers are idempotent, sequential and paced (see

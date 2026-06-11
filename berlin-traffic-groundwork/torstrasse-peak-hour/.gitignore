@@ -1,8 +1,10 @@
 # Raw hourly data is NOT committed (re-fetch via fetch.py / fetch_dtv.py);
 # the small derived tables (dtv_editions.csv, summary.json) ARE committed.
 data/raw_months/
+data/raw_months_det/
 data/qa/
 data/torstrasse_mq_hr.csv
+data/torstrasse_det_hr.csv
 data/torstrasse_frost_latest.csv
 data/dtv_editions_raw.json
 __pycache__/

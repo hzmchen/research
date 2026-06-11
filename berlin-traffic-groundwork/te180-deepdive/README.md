@@ -44,11 +44,13 @@ Two things stand out against TC073:
 > which one you're holding.
 >
 > ⚠️ **Scope limit (added after the TE181 QA):** "never emits zeros" describes a
-> *healthy-but-interrupted* TEU sensor like TE180 in this year. A *degrading* TEU
-> lane does the opposite — TE181 across the street emitted **years of false zeros**
-> (interleaved zero 5-min readings that sum into plausible-looking, undercounted
-> hourly values). On TEU, absence of data means sensor trouble — and so does a
-> present-but-zero hourly value. See
+> *healthy-but-interrupted* TEU sensor like TE180 in this year. TE181 across the
+> street shows two other regimes that both produce zeros: its right lane reads
+> **structurally near-zero** (a quasi-parking spot — 43 % zero daytime hours even
+> in clean years, and those zeros are *real*), while its through-lane emitted
+> **false zeros** during its 2023+ decay (interleaved zero 5-min readings that sum
+> into plausible-looking, undercounted hourly values). The three regimes look
+> identical in the raw data; zeros need validation, not a blanket rule. See
 > [`../torstrasse-peak-hour/frost-qa.md`](../torstrasse-peak-hour/frost-qa.md) § 4.
 
 ## Site & data
