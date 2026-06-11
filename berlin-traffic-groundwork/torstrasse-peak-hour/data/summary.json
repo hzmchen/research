@@ -1,7 +1,7 @@
 {
  "year_metrics": {
   "2015": {
-   "coverage": 0.9126712329,
+   "coverage": 0.9100456621,
    "scrubbed": 560,
    "contaminated": true,
    "usable": false,
@@ -24,7 +24,7 @@
    "lkw_share_top50": 0.1055368129
   },
   "2016": {
-   "coverage": 0.8024817851,
+   "coverage": 0.8006602914,
    "scrubbed": 1226,
    "contaminated": true,
    "usable": false,
@@ -47,7 +47,7 @@
    "lkw_share_top50": 0.1015623459
   },
   "2017": {
-   "coverage": 0.7676940639,
+   "coverage": 0.7658675799,
    "scrubbed": 1098,
    "contaminated": true,
    "usable": false,
@@ -70,30 +70,30 @@
    "lkw_share_top50": 0.0506367464
   },
   "2018": {
-   "coverage": 0.9675799087,
+   "coverage": 0.9648401826,
    "scrubbed": 0,
    "contaminated": false,
    "usable": true,
-   "dtv": 21513.9038461538,
+   "dtv": 21530.1479099678,
    "dtvw": 23259.3192488263,
-   "q1": 2275.0,
-   "q30": 1583.0,
-   "q50": 1547.0,
-   "q30_adj": 1584.0,
-   "q50_adj": 1550.0,
+   "q1": 1739.0,
+   "q30": 1581.0,
+   "q50": 1546.0,
+   "q30_adj": 1583.0,
+   "q50_adj": 1549.0,
    "wk_peak": 1360.4669421488,
    "wk_peak_h": 8,
-   "daily_peak_med": 1392.5,
+   "daily_peak_med": 1392.0,
    "sc_peak": 1397.59,
    "west_peak": 919.884,
    "west_peak_h": 8,
    "ost_peak": 704.0691056911,
    "ost_peak_h": 18,
    "heavier_dir_peak": 919.884,
-   "lkw_share_top50": 0.0625302836
+   "lkw_share_top50": 0.0529714142
   },
   "2019": {
-   "coverage": 0.9799086758,
+   "coverage": 0.9773972603,
    "scrubbed": 2,
    "contaminated": false,
    "usable": true,
@@ -162,7 +162,7 @@
    "lkw_share_top50": 0.0885856789
   },
   "2022": {
-   "coverage": 0.2333333333,
+   "coverage": 0.2318493151,
    "scrubbed": 16,
    "contaminated": false,
    "usable": false,
@@ -185,7 +185,7 @@
    "lkw_share_top50": 0.06435916
   },
   "2023": {
-   "coverage": 0.5673515982,
+   "coverage": 0.5658675799,
    "scrubbed": 20,
    "contaminated": false,
    "usable": false,
@@ -209,8 +209,8 @@
   },
   "2024": {
    "coverage": 0.029143898,
-   "scrubbed": 10,
-   "contaminated": false,
+   "scrubbed": 63,
+   "contaminated": true,
    "usable": false,
    "dtv": null,
    "dtvw": null,
@@ -225,10 +225,33 @@
    "sc_peak": 774.75,
    "west_peak": 838.0212765957,
    "west_peak_h": 8,
-   "ost_peak": 435.9,
+   "ost_peak": 451.7826086957,
    "ost_peak_h": 18,
    "heavier_dir_peak": 838.0212765957,
    "lkw_share_top50": 0.1307403106
+  },
+  "2025": {
+   "coverage": 0.0558219178,
+   "scrubbed": 0,
+   "contaminated": false,
+   "usable": false,
+   "dtv": null,
+   "dtvw": null,
+   "q1": 1423.0,
+   "q30": 1093.0,
+   "q50": 1030.0,
+   "q30_adj": 1329.0,
+   "q50_adj": 1322.0,
+   "wk_peak": 1133.5384615385,
+   "wk_peak_h": 8,
+   "daily_peak_med": 1110.0,
+   "sc_peak": 1070.6666666667,
+   "west_peak": 852.0769230769,
+   "west_peak_h": 8,
+   "ost_peak": 230.8725490196,
+   "ost_peak_h": 8,
+   "heavier_dir_peak": 852.0769230769,
+   "lkw_share_top50": 0.0634805139
   }
  },
  "dtv_editions": [

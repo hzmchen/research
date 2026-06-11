@@ -17,8 +17,9 @@ defining how to measure it, and that at least **nine operationalisations**
 circulate (n-th-highest hour, standardised counts, DTV shortcuts, …). Here we
 compute **all of them on one real street**: Torstraße (Berlin-Mitte), using
 the **TE180 (West) + TE181 (Ost)** lane-detector cross-sections as a synthetic
-RASt cross-section, hourly 2015-2024, plus **30 years of official DTV/DTVw map
-editions (1993-2023)** for the shortcut definitions.
+RASt cross-section, hourly 2015 → mid-2025 (blob archive + the frozen TEU
+SensorThings tail), plus **30 years of official DTV/DTVw map editions
+(1993-2023)** for the shortcut definitions.
 
 For the reference year **2019** (98 % coverage, pre-COVID, both directions
 clean), every *measured* definition lands in a tight cluster:
@@ -51,22 +52,31 @@ clean), every *measured* definition lands in a tight cluster:
 | | |
 |---|---|
 | Directional MQs | `TE180` Torstraße Haus 199, **Richtung West** (2 lanes) · `TE181` Haus 178, **Richtung Ost** (2 lanes) — ~170 m apart, two side streets in between |
-| Source | blob archive `…/alte_qualitaetssicherung/Messquerschnitte/mq_hr_YYYY_MM.csv.gz`, hourly, local time; validity gate `qualitaet ≥ 0.75` (archive convention) |
+| Source | blob archive `…/alte_qualitaetssicherung/Messquerschnitte/mq_hr_YYYY_MM.csv.gz`, hourly, local time; validity gate `qualitaet ≥ 0.75` (archive convention) — extended past 2024-12 with the **frozen TEU SensorThings (FROST) hourly MQ streams** (`fetch_frost.py`; un-QA'd, only for slots the archive never covered) |
 | Cross-section rule | `cross = west + ost`, **only for hours where both directions are valid** — RASt 06's default reference is the both-directions cross-section |
-| Window | 2015-01 → 2024-12; **usable for year metrics: 2018, 2019, 2020** (see below) |
+| Window | 2015-01 → 2025-07 (TE180's last observation 2025-04-13, TE181's 2025-07-02 — the TEU network is being decommissioned, so this is the **end of the series**); **usable for year metrics: 2018, 2019, 2020** (see below) |
 | Vehicle class | `q_kfz` (all motor vehicles) — RASt-faithful, unlike the PKW-only [`te180-deepdive`](../te180-deepdive/) |
 
-Two data-quality interventions, both visible in the figures:
+Three data-quality interventions, all visible in the figures:
 
 1. **Plausibility scrub.** Directional hours > 1,300 Kfz/h are sensor
    artefacts (clean-period envelope max ≈ 1,230): the flagged hours show
    3,400-4,100 Kfz/h at 8-12 km/h crawl speeds — including 3,835 Kfz/h at
    **4 a.m.** They are set to missing (counts per year in `summary.json`).
-2. **2015-2017 excluded as contaminated.** TE181's *bulk* is inflated in
+2. **Marathon Sundays excluded.** The BMW Berlin-Marathon course runs
+   **along Torstraße** (Reinhardtstr. → Torstraße → Karl-Marx-Allee, ~km 7).
+   On race Sundays the closed street's infrared detectors **count the
+   runners**: a near-zero closure hour (e.g. 26 Kfz at 08 h on 2018-09-16),
+   then 1,000-2,400 "Kfz/h" from ~09:30 as the field passes — at runner-pace
+   "speeds" of 3-10 km/h, or with absurd 69-84 km/h misreads. The signature
+   recurs on **every** race Sunday 2015-2023 in the data, so all marathon
+   dates are dropped wholesale (2020 was cancelled). Without this, 2018's
+   "annual maximum" would be 2,275 runner-counted Kfz/h.
+3. **2015-2017 excluded as contaminated.** TE181's *bulk* is inflated in
    those years (6.5-14.8 % of hours above 1,300; median 15-h-hour 2016: 903
    vs ~640 in clean years) — no scrub can repair an inflated bulk, so these
-   years carry no cross-section metrics. 2021-2024 fail on **coverage**
-   instead (TE181 ≤ 28 % valid hours from 2021; TE180 dies mid-2024).
+   years carry no cross-section metrics. 2021-2025 fail on **coverage**
+   instead (TE181 ≤ 28 % valid hours from 2021; TE180 dies April 2025).
 
 ![coverage](figures/01_coverage.png)
 
@@ -112,13 +122,14 @@ The flat top has a second consequence: missing-data bias is tiny. With ≥ 97 %
 coverage, the coverage-proportional rank correction (`q50_adj`) changes
 nothing (1,557 → 1,557 in 2019).
 
-**q1 is event-driven, which is exactly why the formal definitions skip it:**
-2018's absolute maximum (2,275 Kfz/h, +44 % over q30) is **Sunday 16 Sep
-2018, 10:00 — Berlin-Marathon day**, detour traffic with both directions at
-their annual extreme simultaneously. The 2019 marathon Sunday (29 Sep)
-appears too — as the year's only *scrubbed* hours (2,374 Kfz/h "measured" at
-5 km/h): stop-and-go traffic made the infrared detector miscount. One street,
-two marathons, one valid extreme and one artefact.
+**q1 is noise-dominated, which is exactly why the formal definitions skip
+it:** before the marathon exclusion, 2018's apparent annual maximum
+(2,275 Kfz/h, +44 % over q30) was **Sunday 16 Sep 2018, 10:00 — the detector
+counting the Berlin-Marathon field running down the closed street** (the race
+passes Torstraße at ~km 7). With marathon Sundays removed, every year's q1
+drops to within ~6-10 % of q30 (2018: 1,739, an ordinary pre-Christmas Friday
+afternoon) — the absolute maximum of a *valid* year carries no information the
+30th hour doesn't.
 
 ![definitions by year](figures/04_definitions_by_year.png)
 
@@ -195,9 +206,18 @@ DTV shortcuts jump the fence into 1,600-2,600.
   map-consistent.
 - The MQs cover the main carriageway lanes (HF1/HF2) per direction; TEU
   infrared classification of Lkw is approximate, two-wheelers unreliable.
-- 2015-2017 (TE181 bulk contamination) and 2021-2024 (coverage collapse;
-  TE181 ≤ 28 %, TE180 dead from mid-2024) carry no headline metrics. 2020 is
-  a COVID year — shown, but atypical (everything ~12 % below 2019).
+- 2015-2017 (TE181 bulk contamination) and 2021-2025 (coverage collapse;
+  TE181 ≤ 28 %, TE180 dead from April 2025) carry no headline metrics. 2020
+  is a COVID year — shown, but atypical (everything ~12 % below 2019).
+- **The 2024-11 → 2025-07 tail from the FROST SensorThings API is un-QA'd**
+  (no `qualitaet` field; blob rows win wherever both exist, and FROST never
+  fills hours the blob QA rejected). TE181's late counts look degraded
+  (workday levels far below earlier years, speed stream half-missing), so the
+  2025 row in the table is indicative only — it is also the series' end:
+  Torstraße has no live successor detector (no ThermiCam site).
+- Other street-closing events (half-marathon, demonstrations, roadworks) are
+  *not* systematically excluded — only the marathon's runner-count signature
+  was identified and removed. Residual event noise remains in q1.
 - The archive's historical data was reworked in 2025; numbers may differ from
   older pulls. Berlin holiday calendar (incl. one-offs 2017-10-31, 2020-05-08
   and Frauentag from 2019) is implemented in `analyze.py`.
@@ -209,6 +229,7 @@ DTV shortcuts jump the fence into 1,600-2,600.
 ```bash
 cd berlin-traffic-groundwork/torstrasse-peak-hour
 python3 fetch.py        # 120 monthly MQ bundles, sequential + cached (~8 min)
+python3 fetch_frost.py  # un-QA'd 2024-11..2025-07 tail from the FROST API
 python3 fetch_dtv.py    # 8 WFS queries for the 1993-2023 editions
 python3 analyze.py      # pure function of the cached CSVs -> figures + summary.json
 ```
@@ -222,6 +243,12 @@ needs no network.
 - Detector archive: [DPS — Verkehrsdetektion](https://api.viz.berlin.de/daten/verkehrsdetektion)
   (blob container `verkehrsdetektion`, alte QS Messquerschnitte) ·
   [open-data record](https://daten.berlin.de/datensaetze/verkehrsdetektion-berlin)
+- Latest tail: TEU SensorThings `https://api.viz.berlin.de/FROST-Server-TEU/v1.1`
+  — Things(80)/(81) = TE180/TE181, hourly MQ datastreams
+  ("Anzahl/Geschwindigkeit KFZ Stunde - Messquerschnitt", ids 8714/8720/8738
+  and 8822/8828/8846)
+- Marathon course along Torstraße: [BMW Berlin-Marathon — course](https://www.bmw-berlin-marathon.com/en/your-race/course) ·
+  [Tagesspiegel — Strecke und Sperrungen 2018](https://www.tagesspiegel.de/berlin/strecke-und-sperrungen-des-berlin-marathons-2018-5532010.html)
 - Official volumes (WFS, gdi.berlin.de): `ua_verkehrsmengen_{1993,1998,2005,2009,2014,2019}` ·
   `verkehrsmengen_2019:dtvw2019kfz` · `verkehrsmengen_2023:dtvw2023kfz`
 - DTVw→DTV factor 0.91 & RLS-19 M-values: [SenUMVK, Hinweise und Faktoren zur Umrechnung von Verkehrsmengen, 04/2022 (PDF)](https://www.berlin.de/sen/uvk/_assets/verkehr/verkehrsdaten/umrechungsfaktoren-von-verkehrsmengen/hinweise-und-faktoren-zur-umrechnung-von-verkehrsmengen.pdf)

@@ -234,6 +234,11 @@ collapses to a crawl (~3–17 km/h) — e.g. `2023-07-28 21:05–21:10` (172, 16
 ~16 km/h) and `2023-09-24 08:10–08:35` (122–162 PKW at 2.6–9 km/h). High flow at
 crawl speed violates the speed–flow relation, and the ~300-car excess is not
 conserved against neighbouring slots, so these are **sensor miscounts, not traffic**.
+(The `2023-09-24` cluster has a nameable cause: that Sunday was the **Berlin
+Marathon**, whose course runs **along Torstraße** — the detector is counting
+the running field on the closed street. The same signature appears on every
+race Sunday in the hourly archive; see
+[`../torstrasse-peak-hour/`](../torstrasse-peak-hour/).)
 `analyze.py` drops any count `> 110` (the clean body tops out ~100; p99.99 = 97) to
 missing before every figure/statistic, which is why the count max above is **100, not
 172**. This is the *only* value-validity fix the year needs.

@@ -41,6 +41,16 @@ REF_YEAR = 2019           # last pre-COVID year, both directions ~98 %
 BANDS = [(0, 400), (400, 1000), (800, 1800), (1600, 2600), (2600, 3400)]
 BAND_LABELS = ["< 400", "400-1,000", "800-1,800", "1,600-2,600", "> 2,600"]
 
+# The BMW Berlin-Marathon runs ALONG Torstrasse (Reinhardtstr. -> Torstr. ->
+# Karl-Marx-Allee, ~km 7). On race Sundays the street is closed and the
+# infrared detectors count RUNNERS (counts at 3-10 km/h "speeds", or with
+# absurd 69-84 km/h misreads, after a near-zero closure hour) -> the whole
+# day is invalid as vehicle data. 2020 was cancelled (COVID).
+MARATHON_SUNDAYS = pd.to_datetime([
+    "2015-09-27", "2016-09-25", "2017-09-24", "2018-09-16", "2019-09-29",
+    "2021-09-26", "2022-09-25", "2023-09-24", "2024-09-29", "2025-09-21",
+])
+
 
 def berlin_holidays(year: int) -> set:
     e = easter(year)
@@ -65,10 +75,23 @@ def berlin_holidays(year: int) -> set:
 def load() -> pd.DataFrame:
     df = pd.read_csv(HERE / "data" / "torstrasse_mq_hr.csv", sep=";")
     df["date"] = pd.to_datetime(df["tag"], format="%d.%m.%Y")
+    key = ["mq_name", "date", "stunde"]
+    # keys the QA'd archive has SEEN (incl. hours its QA rejected) — the
+    # un-QA'd FROST tail must not resurrect QA-rejected hours
+    seen = set(map(tuple, df[key].itertuples(index=False)))
     df = df[(df["qualitaet"] >= QUALITY_MIN) & df["q_kfz_mq_hr"].notna()]
     # collapse rare duplicate (mq,date,hour) rows, keep the better-quality one
     df = (df.sort_values("qualitaet")
-            .drop_duplicates(["mq_name", "date", "stunde"], keep="last"))
+            .drop_duplicates(key, keep="last"))
+    # append the un-QA'd FROST tail (2024-11 ..; see fetch_frost.py) only for
+    # (mq, date, hour) slots the blob archive never covered
+    frost_csv = HERE / "data" / "torstrasse_frost_latest.csv"
+    if frost_csv.exists():
+        fr = pd.read_csv(frost_csv, sep=";")
+        fr["date"] = pd.to_datetime(fr["tag"], format="%d.%m.%Y")
+        fr = fr[fr["q_kfz_mq_hr"].notna()]
+        fr = fr[~fr[key].apply(tuple, axis=1).isin(seen)]
+        df = pd.concat([df, fr], ignore_index=True)
     kfz = df.pivot(index=["date", "stunde"], columns="mq_name",
                    values="q_kfz_mq_hr")
     lkw = df.pivot(index=["date", "stunde"], columns="mq_name",
@@ -83,10 +106,11 @@ def load() -> pd.DataFrame:
     # flagged contaminated via the scrub share and excluded from year metrics.
     wide["cross_raw"] = wide["west"] + wide["ost"]      # pre-scrub, for fig 03
     scrub = {}
+    marathon = wide["date"].isin(MARATHON_SUNDAYS)
     for c in ("west", "ost"):
-        bad = wide[c] > SCRUB_MAX
+        bad = wide[c] > SCRUB_MAX            # artefact scrub (counted)
         scrub[c] = wide.loc[bad].groupby("year")[c].size().to_dict()
-        wide.loc[bad, c] = np.nan
+        wide.loc[bad | marathon, c] = np.nan  # marathon Sundays: runners, not Kfz
     wide["cross"] = wide["west"] + wide["ost"]          # NaN unless both valid
     wide["dow"] = wide["date"].dt.dayofweek
     hols = set().union(*(berlin_holidays(y) for y in range(2015, 2025)))
